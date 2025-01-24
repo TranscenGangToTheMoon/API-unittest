@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="API-transcendence" type="tests" factoryName="Unittests">
-    <module name="API-unittest" />
+    <module name="API-UnitTest" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />

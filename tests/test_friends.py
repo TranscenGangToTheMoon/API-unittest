@@ -113,7 +113,7 @@ class Test01_Friend(UnitTest):
         user1 = self.user(['accept-friend-request', 'delete-friend', 'accept-friend-request', 'delete-friend', 'accept-friend-request', 'delete-friend'])
         user2 = self.user(['receive-friend-request'])
         user3 = self.user(['receive-friend-request', 'delete-friend'])
-        user4 = self.user(['receive-friend-request'])
+        user4 = self.user(['receive-friend-request', 'delete-user'])
 
         friendship_id = self.assertFriendResponse(create_friendship(user1, user2))
         self.assertResponse(friend(user2, friendship_id, 'DELETE'), 204)
@@ -210,7 +210,7 @@ class Test02_FriendRequest(UnitTest):
         user1 = self.user(['reject-friend-request', 'reject-friend-request', 'reject-friend-request'])
         user2 = self.user(['receive-friend-request'])
         user3 = self.user(['receive-friend-request', 'cancel-friend-request'])
-        user4 = self.user(['receive-friend-request'])
+        user4 = self.user(['receive-friend-request', 'delete-user'])
 
         friend_request_id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
         self.assertResponse(friend_request(friend_request_id, user2, 'DELETE'), 204)
@@ -230,7 +230,7 @@ class Test02_FriendRequest(UnitTest):
         user1 = self.user(['receive-friend-request', 'cancel-friend-request', 'receive-friend-request', 'cancel-friend-request', 'receive-friend-request', 'cancel-friend-request'])
         user2 = self.user()
         user3 = self.user(['reject-friend-request'])
-        user4 = self.user()
+        user4 = self.user(['delete-user'])
 
         friend_request_id = self.assertResponse(friend_requests(user2, user1), 201, get_field=True)
         self.assertResponse(friend_request(friend_request_id, user2, 'DELETE'), 204)

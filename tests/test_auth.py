@@ -175,7 +175,7 @@ class Test04_Verify(UnitTest):
         self.assertResponse(verify(''), 401)
 
     def test_004_delete_user(self):
-        user1 = self.user()
+        user1 = self.user(['delete-user'])
 
         self.assertResponse(me(user1, 'DELETE', password=True), 204)
         self.assertThread(user1)

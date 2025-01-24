@@ -192,7 +192,7 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2)
 
     def test_012_friend(self):
-        user1 = self.user(['accept-friend-request', 'accept-friend-request', 'delete-friend'])
+        user1 = self.user(['accept-friend-request', 'accept-friend-request', 'delete-user'])
         user2 = self.user(['receive-friend-request', 'delete-friend'])
         user3 = self.user(['receive-friend-request', 'delete-friend'])
 
