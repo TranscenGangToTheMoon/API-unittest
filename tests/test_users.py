@@ -11,6 +11,7 @@ from services.lobby import create_lobby, join_lobby
 from services.play import play
 from services.tournament import create_tournament, search_tournament, join_tournament
 from services.user import get_user, me, get_chat_data, get_data, get_game_data
+from utils.config import max_score
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
 
@@ -75,35 +76,28 @@ class Test02_UserMe(UnitTest):
 class Test03_DeleteUser(UnitTest):
 
     def test_001_delete(self):
-        user1 = self.user()
+        user1 = self.user(['delete-user'])
 
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(me(user1), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
         self.assertThread(user1)
 
-    def test_002_delete_not_get_me(self):
-        user1 = self.user()
-
-        self.assertResponse(me(user1, method='DELETE', password=True), 204)
-        self.assertResponse(me(user1), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
-        self.assertThread(user1)
-
-    def test_003_already_delete(self):
-        user1 = self.user()
+    def test_002_already_delete(self):
+        user1 = self.user(['delete-user'])
 
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(me(user1, method='DELETE', password=True), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
         self.assertThread(user1)
 
-    def test_004_request_after_delete(self):
-        user1 = self.user()
+    def test_003_request_after_delete(self):
+        user1 = self.user(['delete-user'])
 
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(create_lobby(user1), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
         self.assertThread(user1)
 
-    def test_005_user_in_lobby(self):
-        user1 = self.user()
+    def test_004_user_in_lobby(self):
+        user1 = self.user(['delete-user'])
         user2 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -112,7 +106,7 @@ class Test03_DeleteUser(UnitTest):
         self.assertResponse(join_lobby(user2, code), 404, {'detail': 'Lobby not found.'})
         self.assertThread(user1, user2)
 
-    def test_006_user_in_game(self):
+    def test_005_user_in_game(self):
         user1 = self.user(['game-start'])
         user2 = self.user(['game-start'])
 
@@ -121,8 +115,8 @@ class Test03_DeleteUser(UnitTest):
         self.assertResponse(me(user1, method='DELETE', password=True), 403)
         self.assertThread(user1, user2)
 
-    def test_007_user_in_tournament(self):
-        user1 = self.user()
+    def test_006_user_in_tournament(self):
+        user1 = self.user(['delete-user'])
         user2 = self.user()
         user3 = self.user()
         name = rnstr()
@@ -135,8 +129,8 @@ class Test03_DeleteUser(UnitTest):
         self.assertResponse(join_tournament(user3, code), 404)
         self.assertThread(user1, user2, user3)
 
-    def test_008_user_in_start_tournament(self):
-        user1 = self.user(['tournament-join'])
+    def test_007_user_in_start_tournament(self):
+        user1 = self.user(['tournament-join', 'delete-user'])
         user2 = self.user(['tournament-leave'])
         user3 = self.user()
         name = rnstr()
@@ -151,8 +145,8 @@ class Test03_DeleteUser(UnitTest):
         # TODO fguirama: make when tournament work
         self.assertThread(user1, user2, user3)
 
-    def test_009_chat_with(self):
-        user1 = self.user()
+    def test_008_chat_with(self):
+        user1 = self.user(['delete-user'])
         user2 = self.user()
 
         self.assertResponse(accept_chat(user2), 200)
@@ -162,45 +156,32 @@ class Test03_DeleteUser(UnitTest):
         self.assertResponse(request_chat_id(user2, chat_id), 403, {'detail': 'You do not belong to this chat.'})
         self.assertThread(user1, user2)
 
-    def test_010_play_duel(self):
+    def test_009_play_duel(self):
+        user1 = self.user(['delete-user'])
         user2 = self.user()
 
-        while True:
-            user1 = self.user()
-
-            self.assertResponse(play(user1), 201)
-            time.sleep(1)
-            response = is_in_game(user1)
-            if response.status_code == 404:
-                break
-            user1['thread_tests'] = ['game-start']
-            self.assertThread(user1)
+        self.assertResponse(play(user1), 201)
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(play(user2), 201)
         time.sleep(1)
         self.assertResponse(is_in_game(user2), 404, {'detail': 'You do not belong to any game.'})
+        self.assertResponse(play(user2, method='DELETE'), 204)
         self.assertThread(user1, user2)
 
-    def test_012_play_ranked(self):
+    def test_010_play_ranked(self):
+        user1 = self.user(['delete-user'])
         user2 = self.user()
 
-        while True:
-            user1 = self.user()
-
-            self.assertResponse(play(user1, 'ranked'), 201)
-            time.sleep(1)
-            response = is_in_game(user1)
-            if response.status_code == 404:
-                break
-            self.assertThread(user1)
+        self.assertResponse(play(user1, 'ranked'), 201)
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(play(user2, 'ranked'), 201)
         time.sleep(1)
         self.assertResponse(is_in_game(user2), 404, {'detail': 'You do not belong to any game.'})
+        self.assertResponse(play(user2, method='DELETE'), 204)
         self.assertThread(user1, user2)
 
-    def test_013_friend_request(self):
-        user1 = self.user()
+    def test_011_friend_request(self):
+        user1 = self.user(['delete-user'])
         user2 = self.user(['receive-friend-request', 'cancel-friend-request'])
 
         friend_request_id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
@@ -210,8 +191,8 @@ class Test03_DeleteUser(UnitTest):
         self.assertResponse(get_friend_requests_received(user2), 200, count=0)
         self.assertThread(user1, user2)
 
-    def test_014_friend(self):
-        user1 = self.user(['accept-friend-request', 'accept-friend-request'])
+    def test_012_friend(self):
+        user1 = self.user(['accept-friend-request', 'accept-friend-request', 'delete-friend'])
         user2 = self.user(['receive-friend-request', 'delete-friend'])
         user3 = self.user(['receive-friend-request', 'delete-friend'])
 
@@ -227,8 +208,8 @@ class Test03_DeleteUser(UnitTest):
         self.assertResponse(get_friends(user3), 200, count=0)
         self.assertThread(user1, user2, user3)
 
-    def test_015_blocked(self):
-        user1 = self.user()
+    def test_013_blocked(self):
+        user1 = self.user(['delete-user'])
         user2 = self.user()
 
         self.assertResponse(blocked_user(user2, user1['id']), 201)
@@ -363,9 +344,9 @@ class Test06_download_data(UnitTest):
 
         for u in (user10, user11, user12):
             self.assertResponse(create_game(user1, u), 201)
-            self.assertResponse(score(user1['id']), 200)
-            self.assertResponse(score(user1['id']), 200)
-            self.assertResponse(score(user1['id']), 200)
+
+            for _ in range(max_score):
+                self.assertResponse(score(user1['id']), 200)
             time.sleep(1)
 
         self.assertResponse(get_data(user1), 200)
@@ -397,9 +378,9 @@ class Test06_download_data(UnitTest):
 
         for u in (user2, user3):
             self.assertResponse(create_game(user1, u), 201)
-            self.assertResponse(score(user1['id']), 200)
-            self.assertResponse(score(user1['id']), 200)
-            self.assertResponse(score(user1['id']), 200)
+
+            for _ in range(max_score):
+                self.assertResponse(score(user1['id']), 200)
             time.sleep(1)
 
         self.assertResponse(get_game_data(user1), 200)
