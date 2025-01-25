@@ -24,7 +24,7 @@ def create_tournament(user, data=None, method: Literal['GET', 'POST', 'PATCH', '
     )
 
 
-def join_tournament(user, code, method: Literal['GET', 'POST', 'PATCH', 'DELETE'] = 'POST', data=None):
+def join_tournament(user, code, method: Literal['POST', 'PATCH', 'DELETE'] = 'POST', data=None):
     if data is None:
         data = {}
     else:

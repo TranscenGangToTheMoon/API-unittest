@@ -2,6 +2,7 @@ import time
 import unittest
 
 from services.auth import register_guest
+from services.chat import create_chat, accept_chat
 from services.friend import friend_requests
 from services.lobby import create_lobby, join_lobby
 from services.sse import events
@@ -153,12 +154,14 @@ class Test03_SSEConnectionClose(UnitTest):
         user2 = self.user()
 
         last_online = self.assertResponse(me(user1), 200, get_field='last_online')
+        self.assertResponse(accept_chat(user2), 200)
+        self.assertResponse(create_chat(user1, user2['username']), 201)
         time.sleep(0.5)
         self.assertThread(user1)
         time.sleep(5)
-        response = self.assertResponse(friend_requests(user2, user1), 201)
-        self.assertNotEqual('online', response['receiver']['status'])
-        self.assertNotEqual(last_online, response['receiver']['status'])
+        response = self.assertResponse(create_chat(user1, method='GET'), 200)['results'][0]['chat_with']['status']
+        self.assertTrue(response['is_online'])
+        self.assertNotEqual(last_online, response['last_online'])
         self.assertThread(user2)
 
     def test_002_leave_lobby_when_disconnect(self):

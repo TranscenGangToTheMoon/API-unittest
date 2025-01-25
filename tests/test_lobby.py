@@ -112,7 +112,7 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertResponse(join_lobby(user2, code), 201)
         self.assertResponse(blocked_user(user1, user2['id']), 201)
 
-        response = self.assertResponse(join_lobby(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
 
         self.assertResponse(create_lobby(user2, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
@@ -130,7 +130,7 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertResponse(join_lobby(user3, code), 201)
         self.assertResponse(blocked_user(user2, user3['id']), 201)
 
-        response = self.assertResponse(join_lobby(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(3, len(response))
         self.assertThread(user1, user2, user3)
 
@@ -143,7 +143,7 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertResponse(join_lobby(user2, code), 201)
         blocked_id = self.assertResponse(blocked_user(user1, user2['id']), 201, get_field=True)
 
-        response = self.assertResponse(join_lobby(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
 
         self.assertResponse(join_lobby(user2, code), 404, {'detail': 'Lobby not found.'})
@@ -169,7 +169,7 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertResponse(join_lobby(user2, code), 201)
         self.assertResponse(join_lobby(user3, code), 201)
         self.assertResponse(blocked_user(user3, user1['id']), 201)
-        response = self.assertResponse(join_lobby(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(2, len(response))
         self.assertThread(user1, user2, user3)
 
@@ -186,7 +186,7 @@ class Test03_BanLobby(UnitTest):
         self.assertResponse(ban_user(user1, user2, code), 204)
 
         self.assertResponse(join_lobby(user2, code), 404, {'detail': 'Lobby not found.'})
-        response = self.assertResponse(join_lobby(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
         self.assertThread(user1, user2)
 
@@ -296,14 +296,14 @@ class Test04_UpdateLobby(UnitTest):
         for u in list(users.values())[1:]:
             self.assertResponse(join_lobby(u, code), 201)
 
-        response = self.assertResponse(join_lobby(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='participants')
         for user in response:
             self.assertEqual(user['team'], users[user['id']]['team'])
 
         response = self.assertResponse(create_lobby(user1, data={'match_type': '1v1'}, method='PATCH'), 200)
         self.assertEqual('1v1', response['match_type'])
 
-        response = self.assertResponse(join_lobby(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='participants')
         for user in response:
             self.assertEqual(user['team'], users[user['id']]['after_team'])
         self.assertThread(*users.values())
@@ -372,7 +372,6 @@ class Test06_LeaveLobby(UnitTest):
         self.assertResponse(join_lobby(user3, code, 'DELETE'), 204)
         self.assertResponse(join_lobby(user2, code, 'DELETE'), 204)
         self.assertResponse(join_lobby(user1, code, 'DELETE'), 204)
-        self.assertResponse(join_lobby(user1, code, 'GET'), 403, {'detail': 'You do not belong to this lobby.'})
         self.assertResponse(create_lobby(user1, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
         self.assertThread(user1, user2, user3)
 
@@ -385,7 +384,7 @@ class Test06_LeaveLobby(UnitTest):
         self.assertResponse(join_lobby(user2, code), 201)
         self.assertResponse(join_lobby(user1, code, 'DELETE'), 204)
 
-        response = self.assertResponse(join_lobby(user2, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user2, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
         self.assertTrue(response[0]['creator'])
         self.assertThread(user1, user2)
@@ -399,8 +398,8 @@ class Test06_LeaveLobby(UnitTest):
         self.assertResponse(join_lobby(user2, code), 201)
         self.assertResponse(join_lobby(user3, code), 201)
         self.assertResponse(join_lobby(user1, code, 'DELETE'), 204)
-        self.assertResponse(join_lobby(user2, code, 'GET'), 403, {'detail': 'You do not belong to this lobby.'})
-        self.assertResponse(join_lobby(user3, code, 'GET'), 403, {'detail': 'You do not belong to this lobby.'})
+        self.assertResponse(create_lobby(user2, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
+        self.assertResponse(create_lobby(user3, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
         self.assertResponse(create_lobby(user2, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
         self.assertResponse(create_lobby(user3, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
         self.assertThread(user1, user2, user3)
@@ -428,7 +427,7 @@ class Test06_LeaveLobby(UnitTest):
         self.assertResponse(join_lobby(user2, code), 201)
         self.assertResponse(join_lobby(user2, code, 'DELETE'), 204)
 
-        response = self.assertResponse(join_lobby(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
         self.assertThread(user1, user2)
 
@@ -458,7 +457,7 @@ class Test07_GetLobby(UnitTest):
 
         self.assertResponse(join_lobby(user2, code), 201)
 
-        response = self.assertResponse(join_lobby(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(2, len(response))
         self.assertThread(user1, user2)
 
@@ -468,7 +467,7 @@ class Test07_GetLobby(UnitTest):
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
 
-        self.assertResponse(join_lobby(user2, code, 'GET'), 403, {'detail': 'You do not belong to this lobby.'})
+        self.assertResponse(create_lobby(user2, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
         self.assertThread(user1, user2)
 
 

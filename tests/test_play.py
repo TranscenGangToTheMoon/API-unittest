@@ -132,7 +132,6 @@ class Test02_PlayError(UnitTest):
 
         self.assertResponse(play(user1), 201)
         self.assertResponse(create_lobby(user1, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
-        self.assertResponse(join_lobby(user1, code, 'GET'), 403, {'detail': 'You do not belong to this lobby.'})
         self.assertThread(user1, user2)
 
     def test_005_user_in_tournament(self):
@@ -145,7 +144,6 @@ class Test02_PlayError(UnitTest):
 
         self.assertResponse(play(user1), 201)
         self.assertResponse(create_tournament(user1, method='GET'), 404, {'detail': 'You do not belong to any tournament.'})
-        self.assertResponse(join_tournament(user1, code, 'GET'), 403, {'detail': 'You do not belong to this tournament.'})
         self.assertThread(user1, user2)
 
     def test_006_delete(self):

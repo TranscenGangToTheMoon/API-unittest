@@ -1,4 +1,3 @@
-import json
 import time
 import unittest
 
@@ -107,7 +106,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 201)
         self.assertResponse(blocked_user(user1, user2['id']), 201)
 
-        response = self.assertResponse(join_tournament(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_tournament(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
 
         self.assertResponse(create_tournament(user2, method='GET'), 404, {'detail': 'You do not belong to any tournament.'})
@@ -124,7 +123,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user3, code), 201)
         self.assertResponse(blocked_user(user2, user3['id']), 201)
 
-        response = self.assertResponse(join_tournament(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_tournament(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(3, len(response))
         self.assertThread(user1, user2, user3)
 
@@ -137,7 +136,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 201)
         blocked_id = self.assertResponse(blocked_user(user1, user2['id']), 201, get_field=True)
 
-        response = self.assertResponse(join_tournament(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_tournament(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
 
         self.assertResponse(join_tournament(user2, code), 404, {'detail': 'Tournament not found.'})
@@ -191,7 +190,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 201)
         self.assertResponse(join_tournament(user3, code), 201)
         self.assertResponse(blocked_user(user3, user1['id']), 201)
-        response = self.assertResponse(join_tournament(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_tournament(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(2, len(response))
         self.assertThread(user1, user2, user3)
 
@@ -208,7 +207,7 @@ class Test03_BanTournament(UnitTest):
         self.assertResponse(ban_user(user1, user2, code), 204)
         self.assertResponse(join_tournament(user2, code), 404, {'detail': 'Tournament not found.'})
 
-        response = self.assertResponse(join_tournament(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_tournament(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
         self.assertThread(user1, user2)
 
@@ -290,17 +289,16 @@ class Test06_LeaveTournament(UnitTest):
             self.assertResponse(join_tournament(u, code), 201)
 
         self.assertResponse(join_tournament(user1, code, 'DELETE'), 204)
-        self.assertResponse(join_tournament(user1, code, 'GET'), 403, {'detail': 'You do not belong to this tournament.'})
         self.assertResponse(create_tournament(user1, method='GET'), 404, {'detail': 'You do not belong to any tournament.'})
 
         self.assertResponse(search_tournament(user1, name), 200, count=1)
 
         for u in users:
-            self.assertResponse(join_tournament(u, code, 'GET'), 200)
+            self.assertResponse(create_tournament(u, method='GET'), 200)
 
         for u in users:
             self.assertResponse(join_tournament(u, code, 'DELETE'), 204)
-            self.assertResponse(join_tournament(u, code, 'GET'), 403, {'detail': 'You do not belong to this tournament.'})
+            self.assertResponse(create_tournament(u, method='GET'), 404, {'detail': 'You do not belong to any tournament.'})
             self.assertResponse(create_tournament(u, method='GET'), 404, {'detail': 'You do not belong to any tournament.'})
 
         self.assertResponse(search_tournament(user1, name), 200, count=0)
@@ -315,7 +313,7 @@ class Test06_LeaveTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 201)
         self.assertResponse(join_tournament(user1, code, 'DELETE'), 204)
 
-        response = self.assertResponse(join_tournament(user2, code, 'GET'), 200)
+        response = self.assertResponse(create_tournament(user2, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
         self.assertThread(user1, user2)
 
@@ -343,7 +341,7 @@ class Test06_LeaveTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 201)
         self.assertResponse(join_tournament(user2, code, 'DELETE'), 204)
 
-        response = self.assertResponse(join_tournament(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_tournament(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(1, len(response))
         self.assertThread(user1, user2)
 
@@ -390,7 +388,7 @@ class Test07_GetTournament(UnitTest):
 
         self.assertResponse(join_tournament(user2, code), 201)
 
-        response = self.assertResponse(join_tournament(user1, code, 'GET'), 200)
+        response = self.assertResponse(create_tournament(user1, method='GET'), 200, get_field='participants')
         self.assertEqual(2, len(response))
         self.assertThread(user1, user2)
 
@@ -400,7 +398,7 @@ class Test07_GetTournament(UnitTest):
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
 
-        self.assertResponse(join_tournament(user2, code, 'GET'), 403, {'detail': 'You do not belong to this tournament.'})
+        self.assertResponse(create_tournament(user2, method='GET'), 404, {'detail': 'You do not belong to any tournament.'})
         self.assertThread(user1, user2)
 
     def test_004_search_tournaments(self):
