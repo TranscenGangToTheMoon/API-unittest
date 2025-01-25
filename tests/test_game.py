@@ -84,6 +84,21 @@ class Test01_Game(UnitTest):
         self.assertResponse(is_in_game(user1), 200)
         self.assertThread(user1, user2)
 
+    def test_009_get_games(self):
+        n = random.randint(2, 15)
+        user1 = self.user(['game-start'] * n)
+        users = [self.user(['game-start']) for _ in range(n)]
+
+        for u in users:
+            self.assertResponse(create_game(user1, u), 201)
+            for _ in range(MAX_SCORE):
+                self.assertResponse(score(user1['id']), 200)
+            time.sleep(0.5)
+
+        results = self.assertResponse(get_games(user1), 200, get_field='results', count=n)
+        self.assertEqual(users[-1]['id'], results[0]['teams']['b']['players'][0]['id'])
+        self.assertThread(user1, *users)
+
 
 class Test02_Score(UnitTest):
 
