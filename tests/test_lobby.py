@@ -5,6 +5,7 @@ from services.blocked import blocked_user, unblocked_user
 from services.friend import create_friendship
 from services.game import score
 from services.lobby import create_lobby, join_lobby, ban_user, invite_user, post_message
+from utils.config import MAX_SCORE
 from utils.my_unittest import UnitTest
 
 
@@ -223,7 +224,7 @@ class Test03_BanLobby(UnitTest):
 
         self.assertResponse(join_lobby(user2, code), 201)
         self.assertResponse(join_lobby(user3, code), 201)
-        self.assertResponse(ban_user(user2, user3, code), 403, {'detail': 'Only creator can update this lobby.'})
+        self.assertResponse(ban_user(user2, user3, code), 403, {'detail': 'Only the lobby creator can ban a user'})
         self.assertThread(user1, user2, user3)
 
     def test_006_users_does_exist(self):
@@ -602,8 +603,8 @@ class Test10_FinishMatch(UnitTest):
 
         self.assertResponse(score(user1['id']), 200)
         self.assertTrue(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='is_playing'))
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user1['id']), 200)
 
         self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='is_playing'))
         self.assertThread(user1, user2)
@@ -639,9 +640,8 @@ class Test10_FinishMatch(UnitTest):
 
         time.sleep(2)
 
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
 
         self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='is_playing'))
         self.assertFalse(self.assertResponse(create_lobby(user3, method='GET'), 200, get_field='is_playing'))

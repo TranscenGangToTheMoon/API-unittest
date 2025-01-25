@@ -1,12 +1,14 @@
+import json
 import time
 import unittest
 
 from services.blocked import blocked_user, unblocked_user
 from services.friend import create_friendship
-from services.game import score
+from services.game import score, get_games, get_tournament
 from services.stats import set_trophies
 from services.tournament import create_tournament, join_tournament, ban_user, search_tournament, invite_user, tj, ts, \
     gs, tmf, tf, tsa, post_message
+from utils.config import MAX_SCORE
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
 
@@ -242,7 +244,7 @@ class Test03_BanTournament(UnitTest):
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
 
         self.assertResponse(join_tournament(user2, code), 201)
-        self.assertResponse(ban_user(user2, user1, code), 403, {'detail': 'Only creator can update this tournament.'}) # todo pas bonne reponse
+        self.assertResponse(ban_user(user2, user1, code), 403, {'detail': 'Only the tournament creator can ban a user'})
         self.assertThread(user1, user2)
 
     def test_006_users_does_exist(self):
@@ -629,19 +631,16 @@ class Test10_FinishTournament(UnitTest):
 
         time.sleep(5)
 
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
 
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
 
         time.sleep(5)
 
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
 
         self.assertThread(user1, user2, user3, user4)
 
@@ -676,26 +675,24 @@ class Test10_FinishTournament(UnitTest):
 
         time.sleep(5)
 
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
 
         self.assertResponse(score(user7['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
 
         self.assertResponse(score(user6['id']), 200)
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user6['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user3['id']), 200)
 
         self.assertResponse(score(user4['id']), 200)
         self.assertResponse(score(user5['id']), 200)
         self.assertResponse(score(user4['id']), 200)
-        self.assertResponse(score(user5['id']), 200)
-        self.assertResponse(score(user5['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user5['id']), 200)
 
         time.sleep(5)
 
@@ -703,20 +700,22 @@ class Test10_FinishTournament(UnitTest):
         self.assertResponse(score(user1['id']), 200)
         self.assertResponse(score(user1['id']), 200)
         self.assertResponse(score(user5['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE - 2):
+            self.assertResponse(score(user1['id']), 200)
 
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE - 2):
+            self.assertResponse(score(user3['id']), 200)
 
         time.sleep(5)
 
         self.assertResponse(score(user1['id']), 200)
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user3['id']), 200)
 
         self.assertThread(user1, user2, user3, user4, user5, user6, user7, user8)
 
@@ -776,50 +775,44 @@ class Test10_FinishTournament(UnitTest):
 # -------------------------------------------------- HUITIEME -------------------------------------------------- #
 
         # -------- Match 1: 1 vs 16 ------------------------------------- #
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
 
         # -------- Match 2: 2 vs 15 ------------------------------------- #
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
 
         # -------- Match 3: 3 vs 14 ------------------------------------- #
-        self.assertResponse(score(user3['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user3['id']), 200)
 
         # -------- Match 4: 4 vs 13 ------------------------------------- #
-        self.assertResponse(score(user4['id']), 200)
-        self.assertResponse(score(user4['id']), 200)
-        self.assertResponse(score(user4['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user4['id']), 200)
 
         # -------- Match 5: 5 vs 12 ------------------------------------- #
         self.assertResponse(score(user12['id']), 200)
         self.assertResponse(score(user5['id']), 200)
         self.assertResponse(score(user12['id']), 200)
-        self.assertResponse(score(user5['id']), 200)
-        self.assertResponse(score(user5['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user5['id']), 200)
 
         # -------- Match 6: 6 vs 11 ------------------------------------- #
         self.assertResponse(score(user11['id']), 200)
         self.assertResponse(score(user6['id']), 200)
         self.assertResponse(score(user11['id']), 200)
-        self.assertResponse(score(user6['id']), 200)
-        self.assertResponse(score(user6['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user6['id']), 200)
 
         # -------- Match 7: 7 vs 10 ------------------------------------- #
         self.assertResponse(score(user10['id']), 200)
-        self.assertResponse(score(user7['id']), 200)
-        self.assertResponse(score(user7['id']), 200)
-        self.assertResponse(score(user7['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user7['id']), 200)
 
         # -------- Match 8: 8 vs 9 ------------------------------------- #
         self.assertResponse(score(user8['id']), 200)
-        self.assertResponse(score(user9['id']), 200)
-        self.assertResponse(score(user9['id']), 200)
-        self.assertResponse(score(user9['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user9['id']), 200)
 
 # -------------------------------------------------- QUART --------------------------------------------------- #
         self.assertResponse(join_tournament(user8, code, method='DELETE'), 204)
@@ -833,26 +826,26 @@ class Test10_FinishTournament(UnitTest):
         time.sleep(5)
 
         # -------- Match 9: 1 vs 9 ------------------------------------- #
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
 
         # -------- Match 10: 4 vs 5 ------------------------------------- #
         self.assertResponse(score(user4['id']), 200)
         self.assertResponse(score(user4['id']), 200)
         self.assertResponse(score(user5['id']), 200)
-        self.assertResponse(score(user4['id']), 200)
+        for _ in range(MAX_SCORE - 2):
+            self.assertResponse(score(user4['id']), 200)
 
         # -------- Match 11: 2 vs 7 ------------------------------------- #
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
 
         # -------- Match 12: 3 vs 6 ------------------------------------- #
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user6['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE - 2):
+            self.assertResponse(score(user3['id']), 200)
 
 # -------------------------------------------------- SEMI --------------------------------------------------- #
         self.assertResponse(join_tournament(user5, code, method='DELETE'), 204)
@@ -864,15 +857,16 @@ class Test10_FinishTournament(UnitTest):
         # -------- Match 13: 1 vs 4 ------------------------------------- #
         self.assertResponse(score(user1['id']), 200)
         self.assertResponse(score(user4['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user1['id']), 200)
 
         # -------- Match 14: 2 vs 3 ------------------------------------- #
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user2['id']), 200)
         self.assertResponse(score(user2['id']), 200)
         self.assertResponse(score(user3['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
+        for _ in range(MAX_SCORE - 2):
+            self.assertResponse(score(user2['id']), 200)
 
 # -------------------------------------------------- FINAL --------------------------------------------------- #
         self.assertResponse(join_tournament(user3, code, method='DELETE'), 204)
@@ -880,9 +874,8 @@ class Test10_FinishTournament(UnitTest):
         time.sleep(5)
 
         # -------- Match 15: 1 vs 2 ------------------------------------- #
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
 
         self.assertThread(user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12, user13, user14, user15, user16)
 
@@ -914,21 +907,20 @@ class Test10_FinishTournament(UnitTest):
         time.sleep(30)
 
         self.assertResponse(score(user7['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user2['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
 
         self.assertResponse(score(user6['id']), 200)
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user6['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user3['id']), 200)
 
         self.assertResponse(score(user4['id']), 200)
         self.assertResponse(score(user5['id']), 200)
         self.assertResponse(score(user4['id']), 200)
-        self.assertResponse(score(user5['id']), 200)
-        self.assertResponse(score(user5['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user5['id']), 200)
 
         time.sleep(5)
 
@@ -936,21 +928,26 @@ class Test10_FinishTournament(UnitTest):
         self.assertResponse(score(user1['id']), 200)
         self.assertResponse(score(user1['id']), 200)
         self.assertResponse(score(user5['id']), 200)
-        self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE - 2):
+            self.assertResponse(score(user1['id']), 200)
 
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user2['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE - 2):
+            self.assertResponse(score(user3['id']), 200)
 
         time.sleep(5)
 
         self.assertResponse(score(user1['id']), 200)
         self.assertResponse(score(user3['id']), 200)
         self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
-        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user3['id']), 200)
 
+        tournament_id = self.assertResponse(get_games(user3), 200)['results'][0]['tournament_id']
+        response = self.assertResponse(get_tournament(tournament_id, user3), 200)
+        self.assertEqual(4, len(response['matches']['quarter-final']))
         self.assertThread(user1, user2, user3, user4, user5, user6, user7)
 
 

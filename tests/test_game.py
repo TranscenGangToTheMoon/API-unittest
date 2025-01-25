@@ -197,7 +197,7 @@ class Test03_Finish(UnitTest):
 
         for u in (user1, user2):
             match = self.assertResponse(get_games(u), 200, get_field='results', count=1)[0]
-            self.assertEqual(user1['id'], match['teams'][match['winner']]['players'][0]['id'])
+            self.assertEqual(user2['id'], match['teams'][match['winner']]['players'][0]['id'])
 
         self.assertThread(user1, user2)
 
