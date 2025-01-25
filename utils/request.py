@@ -33,7 +33,7 @@ def make_request(endpoint, method: Literal['GET', 'POST', 'DELETE', 'PATCH', 'PU
 
     print(f'{method} {endpoint} => {r.status_code} - {data}', flush=True)
 
-    if r.status_code == 204:
+    if r.status_code == 204 or r.status_code == 414:
         print()
         return RequestResult(r.status_code)
 
