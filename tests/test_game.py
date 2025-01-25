@@ -5,7 +5,7 @@ import unittest
 from services.game import create_game, is_in_game, score, finish_match, get_tournament, get_games
 from services.stats import set_trophies
 from services.tournament import join_tournament, create_tournament, tj, ts, gs, tmf, tf
-from utils.config import max_score
+from utils.config import MAX_SCORE
 from utils.my_unittest import UnitTest
 
 
@@ -89,9 +89,9 @@ class Test02_Score(UnitTest):
 
     def test_001_score(self):
         user1 = self.user(['game-start'])
-        score_1 = random.randint(0, max_score - 1)
+        score_1 = random.randint(0, MAX_SCORE - 1)
         user2 = self.user(['game-start'])
-        score_2 = random.randint(0, max_score - 1)
+        score_2 = random.randint(0, MAX_SCORE - 1)
 
         self.assertResponse(create_game(user1, user2), 201)
         for _ in range(score_1):
@@ -117,7 +117,7 @@ class Test03_Finish(UnitTest):
         user2 = self.user(['game-start'])
 
         self.assertResponse(create_game(user1, user2), 201)
-        for _ in range(max_score):
+        for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
         self.assertResponse(is_in_game(user1), 404)
         self.assertResponse(is_in_game(user2), 404)
@@ -128,7 +128,7 @@ class Test03_Finish(UnitTest):
         user2 = self.user(['game-start'])
 
         match_id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
-        for _ in range(max_score - 1):
+        for _ in range(MAX_SCORE - 1):
             self.assertResponse(score(user1['id']), 200)
         self.assertResponse(finish_match(match_id, 'player-disconnect', user2['id']), 200)
         self.assertThread(user1, user2)
@@ -146,7 +146,7 @@ class Test03_Finish(UnitTest):
         self.assertResponse(score(user2['id'], own_goal=True), 200)
         self.assertResponse(score(user3['id'], own_goal=True), 200)
         self.assertResponse(score(user3['id']), 200)
-        for _ in range(max_score - 2):
+        for _ in range(MAX_SCORE - 2):
             self.assertResponse(score(user1['id'], own_goal=False), 200)
 
         for user in [user1, user2, user3, user4, user5, user6]:
@@ -175,10 +175,10 @@ class Test04_Tournament(UnitTest):
 
         time.sleep(5)
 
-        for _ in range(max_score):
+        for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
-        for _ in range(max_score):
+        for _ in range(MAX_SCORE):
             self.assertResponse(score(user2['id']), 200)
 
         time.sleep(5)
@@ -186,7 +186,7 @@ class Test04_Tournament(UnitTest):
         self.assertResponse(score(user1['id']), 200)
         self.assertResponse(score(user2['id']), 200)
         self.assertResponse(score(user2['id']), 200)
-        for _ in range(max_score - 1):
+        for _ in range(MAX_SCORE - 1):
             self.assertResponse(score(user1['id']), 200)
 
         response = self.assertResponse(get_games(user1), 200, count=2)

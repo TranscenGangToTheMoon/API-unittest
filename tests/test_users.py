@@ -11,7 +11,7 @@ from services.lobby import create_lobby, join_lobby
 from services.play import play
 from services.tournament import create_tournament, search_tournament, join_tournament
 from services.user import get_user, me, get_chat_data, get_data, get_game_data
-from utils.config import max_score
+from utils.config import MAX_SCORE
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
 
@@ -345,7 +345,7 @@ class Test06_download_data(UnitTest):
         for u in (user10, user11, user12):
             self.assertResponse(create_game(user1, u), 201)
 
-            for _ in range(max_score):
+            for _ in range(MAX_SCORE):
                 self.assertResponse(score(user1['id']), 200)
             time.sleep(1)
 
@@ -379,7 +379,7 @@ class Test06_download_data(UnitTest):
         for u in (user2, user3):
             self.assertResponse(create_game(user1, u), 201)
 
-            for _ in range(max_score):
+            for _ in range(MAX_SCORE):
                 self.assertResponse(score(user1['id']), 200)
             time.sleep(1)
 
