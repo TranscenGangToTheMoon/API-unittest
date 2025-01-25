@@ -194,6 +194,12 @@ class Test03_GetChat(UnitTest):
         self.assertResponse(request_chat_id(user2, chat_id), 200)
         self.assertThread(user1, user2)
 
+    def test_008_search_chat_with_long_query(self):
+        user1 = self.user()
+
+        self.assertResponse(create_chat(user1, method='GET', query=LONG_QUERY), 414)
+        self.assertThread(user1)
+
 
 class Test04_Messages(UnitTest):
 
