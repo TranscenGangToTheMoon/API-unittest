@@ -97,6 +97,12 @@ class Test02_CreateChatError(UnitTest):
         self.assertResponse(create_chat(user2, user1['username']), 403, {'detail': 'Guest users cannot perform this action.'})
         self.assertThread(user1, user2)
 
+    def test_010_username_field(self):
+        user1 = self.user()
+
+        self.assertResponse(create_chat(user1, LONG_QUERY), 400, {'username': ['Ensure this field has no more than 30 characters.']})
+        self.assertThread(user1)
+
 
 class Test03_GetChat(UnitTest):
 
