@@ -169,6 +169,38 @@ class Test03_Finish(UnitTest):
 
         self.assertThread(user1, user2, user3, user4, user5, user6)
 
+    def test_004_finish_disconnect_winning(self):
+        user1 = self.user(['game-start'])
+        user2 = self.user(['game-start'])
+
+        match_id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user1['id']), 200)
+        self.assertResponse(score(user2['id']), 200)
+        self.assertResponse(finish_match(match_id, 'player-disconnect', user2['id']), 200)
+
+        for u in (user1, user2):
+            match = self.assertResponse(get_games(u), 200, get_field='results', count=1)[0]
+            self.assertEqual(user1['id'], match['teams'][match['winner']]['players'][0]['id'])
+
+        self.assertThread(user1, user2)
+
+    def test_005_finish_disconnect_not_winning(self):
+        user1 = self.user(['game-start'])
+        user2 = self.user(['game-start'])
+
+        match_id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user1['id']), 200)
+        self.assertResponse(score(user2['id']), 200)
+        self.assertResponse(finish_match(match_id, 'player-disconnect', user1['id']), 200)
+
+        for u in (user1, user2):
+            match = self.assertResponse(get_games(u), 200, get_field='results', count=1)[0]
+            self.assertEqual(user1['id'], match['teams'][match['winner']]['players'][0]['id'])
+
+        self.assertThread(user1, user2)
+
 
 class Test04_Tournament(UnitTest):
 
