@@ -4,6 +4,7 @@ from services.blocked import blocked_user, unblocked_user
 from services.chat import accept_chat, create_chat, create_message, request_chat_id
 from services.friend import create_friendship, friend_requests
 from services.user import me
+from utils.config import LONG_QUERY
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
 
