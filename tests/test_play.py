@@ -1,6 +1,7 @@
 import time
 import unittest
 
+from services.blocked import blocked_user
 from services.game import create_game, is_in_game
 from services.lobby import create_lobby, join_lobby
 from services.play import play
@@ -211,6 +212,90 @@ class Test02_PlayError(UnitTest):
         self.assertResponse(play(user4, game_mode='ranked'), 201)
         time.sleep(1)
         self.assertThread(user1, user2, user3, user4)
+
+    def test_010_blocked_user(self):
+        user1 = self.user([lj, lup, 'game-start'])
+        user2 = self.user([lup, 'game-start'])
+        user3 = self.user()
+        user4 = self.user([lj, lj, lup, lup, 'game-start'])
+        user5 = self.user([lj, lup, lup, 'game-start'])
+        user6 = self.user([lup, lup, 'game-start'])
+        user7 = self.user(['game-start'])
+
+        self.assertResponse(blocked_user(user3, user1['id']), 201)
+        self.assertResponse(blocked_user(user6, user1['id']), 201)
+
+        code = self.assertResponse(create_lobby(user1), 201, get_field='code')
+        self.assertResponse(join_lobby(user2, code), 201)
+        self.assertResponse(join_lobby(user1, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user2, code, data={'is_ready': True}), 200)
+
+        code = self.assertResponse(create_lobby(user3), 201, get_field='code')
+        self.assertResponse(join_lobby(user3, code, data={'is_ready': True}), 200)
+
+        code = self.assertResponse(create_lobby(user4), 201, get_field='code')
+        self.assertResponse(join_lobby(user5, code), 201)
+        self.assertResponse(join_lobby(user6, code), 201)
+        self.assertResponse(join_lobby(user4, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user5, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user6, code, data={'is_ready': True}), 200)
+
+        self.assertResponse(is_in_game(user1), 404)
+        self.assertResponse(is_in_game(user3), 404)
+
+        code = self.assertResponse(create_lobby(user7), 201, get_field='code')
+        self.assertResponse(join_lobby(user7, code, data={'is_ready': True}), 200)
+
+        time.sleep(2)
+
+        self.assertResponse(is_in_game(user1), 200)
+        self.assertResponse(is_in_game(user3), 404)
+        self.assertResponse(is_in_game(user4), 200)
+        self.assertResponse(is_in_game(user7), 200)
+
+        self.assertThread(user1, user2, user3, user4, user5, user6, user7)
+
+    def test_011_blocked_by_user(self):
+        user1 = self.user([lj, lup, 'game-start'])
+        user2 = self.user([lup, 'game-start'])
+        user3 = self.user()
+        user4 = self.user([lj, lj, lup, lup, 'game-start'])
+        user5 = self.user([lj, lup, lup, 'game-start'])
+        user6 = self.user([lup, lup, 'game-start'])
+        user7 = self.user(['game-start'])
+
+        self.assertResponse(blocked_user(user1, user3['id']), 201)
+        self.assertResponse(blocked_user(user6, user1['id']), 201)
+
+        code = self.assertResponse(create_lobby(user1), 201, get_field='code')
+        self.assertResponse(join_lobby(user2, code), 201)
+        self.assertResponse(join_lobby(user1, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user2, code, data={'is_ready': True}), 200)
+
+        code = self.assertResponse(create_lobby(user3), 201, get_field='code')
+        self.assertResponse(join_lobby(user3, code, data={'is_ready': True}), 200)
+
+        code = self.assertResponse(create_lobby(user4), 201, get_field='code')
+        self.assertResponse(join_lobby(user5, code), 201)
+        self.assertResponse(join_lobby(user6, code), 201)
+        self.assertResponse(join_lobby(user4, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user5, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user6, code, data={'is_ready': True}), 200)
+
+        self.assertResponse(is_in_game(user1), 404)
+        self.assertResponse(is_in_game(user3), 404)
+
+        code = self.assertResponse(create_lobby(user7), 201, get_field='code')
+        self.assertResponse(join_lobby(user7, code, data={'is_ready': True}), 200)
+
+        time.sleep(2)
+
+        self.assertResponse(is_in_game(user1), 200)
+        self.assertResponse(is_in_game(user3), 404)
+        self.assertResponse(is_in_game(user4), 200)
+        self.assertResponse(is_in_game(user7), 200)
+
+        self.assertThread(user1, user2, user3, user4, user5, user6, user7)
 
 
 if __name__ == '__main__':
