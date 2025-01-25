@@ -6,9 +6,10 @@ from services.blocked import blocked_user
 from services.chat import create_chat, accept_chat, request_chat_id, create_message
 from services.friend import friend_requests, get_friend_requests_received, create_friendship, friend, get_friends, \
     friend_request
-from services.game import create_game, is_in_game, score
+from services.game import create_game, is_in_game, score, get_games, get_tournament
 from services.lobby import create_lobby, join_lobby
 from services.play import play
+from services.stats import set_trophies
 from services.tournament import create_tournament, search_tournament, join_tournament
 from services.user import get_user, me, get_chat_data, get_data, get_game_data
 from utils.config import MAX_SCORE
@@ -217,6 +218,60 @@ class Test03_DeleteUser(UnitTest):
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(blocked_user(user2, user1['id'], method='GET'), 200, count=0)
         self.assertThread(user1, user2)
+
+    def test_014_game(self):
+        user1 = self.user(['game-start', 'delete-user'])
+        user2 = self.user(['game-start'])
+
+        self.assertResponse(play(user1), 201)
+        self.assertResponse(play(user2), 201)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        self.assertResponse(me(user1, method='DELETE', password=True), 204)
+        self.assertResponse(get_games(user2), 200, count=1)
+        self.assertThread(user1, user2)
+
+    def test_015_tournament(self):
+        tj = 'tournament-join'
+        ts = 'tournament-start'
+        gs = 'game-start'
+        tmf = 'tournament-match-finish'
+        tf = 'tournament-finish'
+
+        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, 'delete-user'])
+        user2 = self.user([tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
+        user3 = self.user([tj, ts, gs, tmf, tmf, tmf, tf])
+        user4 = self.user([ts, gs, tmf, tmf, tmf, tf, 'delete-user'])
+
+        self.assertResponse(set_trophies(user1, 1000), 201)
+        self.assertResponse(set_trophies(user2, 500), 201)
+        self.assertResponse(set_trophies(user3, 200), 201)
+        self.assertResponse(set_trophies(user4, 100), 201)
+
+        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
+        self.assertResponse(join_tournament(user2, code), 201)
+        self.assertResponse(join_tournament(user3, code), 201)
+        self.assertResponse(join_tournament(user4, code), 201)
+
+        time.sleep(5)
+
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
+
+        time.sleep(5)
+
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        self.assertResponse(me(user1, method='DELETE', password=True), 204)
+        self.assertResponse(me(user4, method='DELETE', password=True), 204)
+        tournament_id = self.assertResponse(get_games(user2), 200, count=2)['results'][0]['tournament_id']
+        self.assertResponse(get_tournament(tournament_id, user2), 200)
+        self.assertThread(user1, user2, user3, user4)
 
 
 class Test04_UpdateUserMe(UnitTest):
