@@ -11,7 +11,8 @@ from services.lobby import create_lobby, join_lobby
 from services.play import play
 from services.stats import set_trophies
 from services.tournament import create_tournament, search_tournament, join_tournament
-from services.user import get_user, me, get_chat_data, get_data, get_game_data, get_profile_pictures
+from services.user import get_user, me, get_chat_data, get_data, get_game_data, get_profile_pictures, \
+    set_profile_pictures
 from utils.config import MAX_SCORE
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
@@ -460,6 +461,13 @@ class Test07_PictureProfiles(UnitTest):
         response = self.assertResponse(me(user1), 200)
         self.assertEqual({'id': 0, 'name': 'Default', 'small': '/assets/profile_pictures/default_small.png', 'medium': '/assets/profile_pictures/default_medium.png'}, response['profile_picture'])
         self.assertResponse(get_profile_pictures(user1), 200)
+        self.assertThread(user1)
+
+    def test_010_invalid_select(self):
+        user1 = self.user()
+
+        self.assertResponse(set_profile_pictures(user1, 132456), 404)
+        self.assertResponse(set_profile_pictures(user1, 2), 403)
         self.assertThread(user1)
 
 

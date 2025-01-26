@@ -44,8 +44,16 @@ def get_game_data(user):
     )
 
 
+def set_profile_pictures(user, id):
+    return make_request(
+        endpoint=f'users/profile-picture/{id}/',
+        method='PUT',
+        token=user['token'],
+    )
+
+
 def get_profile_pictures(user):
     return make_request(
-        endpoint=f'users/profile-pictures/',
+        endpoint='users/profile-pictures/',
         token=user['token'],
     )
