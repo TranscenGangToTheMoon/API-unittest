@@ -463,6 +463,15 @@ class Test07_PictureProfiles(UnitTest):
         self.assertResponse(get_profile_pictures(user1), 200)
         self.assertThread(user1)
 
+    def test_002_update_pp(self):
+        user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
+        user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
+
+        id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
+        self.assertResponse(friend_request(id, user2), 201)
+        self.assertResponse(set_profile_pictures(user1, 19), 200)
+        self.assertThread(user1, user2)
+
     def test_010_invalid_select(self):
         user1 = self.user()
 
