@@ -463,7 +463,7 @@ class Test07_PictureProfiles(UnitTest):
         self.assertResponse(get_profile_pictures(user1), 200)
         self.assertThread(user1)
 
-    def test_002_update_pp(self):
+    def test_002_update_pp(self): # todo check all possibilities
         user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
         user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
 
