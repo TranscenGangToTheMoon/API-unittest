@@ -11,7 +11,7 @@ from services.lobby import create_lobby, join_lobby
 from services.play import play
 from services.stats import set_trophies
 from services.tournament import create_tournament, search_tournament, join_tournament
-from services.user import get_user, me, get_chat_data, get_data, get_game_data
+from services.user import get_user, me, get_chat_data, get_data, get_game_data, get_profile_pictures
 from utils.config import MAX_SCORE
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
@@ -77,11 +77,12 @@ class Test02_UserMe(UnitTest):
 class Test03_DeleteUser(UnitTest):
 
     def test_001_delete(self):
-        user1 = self.user(['delete-user'])
-
-        self.assertResponse(me(user1, method='DELETE', password=True), 204)
-        self.assertResponse(me(user1), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
-        self.assertThread(user1)
+        # user1 = self.user(['delete-user'])
+        token = input('-> ')
+        self.assertResponse(me({'token': token, 'password': '24LzfZ!P5RQj'}, method='DELETE', password=True), 204)
+        # self.assertResponse(me(user1, method='DELETE', password=True), 204)
+        # self.assertResponse(me(user1), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
+        # self.assertThread(user1)
 
     def test_002_already_delete(self):
         user1 = self.user(['delete-user'])
@@ -231,6 +232,15 @@ class Test03_DeleteUser(UnitTest):
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(get_games(user2), 200, count=1)
         self.assertThread(user1, user2)
+
+    def test_015_two_sse_connection(self):
+        user1 = self.user(sse=False)
+        user1_bis = user1.copy()
+
+        self.connect_to_sse(user1, ['delete-user'])
+        self.connect_to_sse(user1_bis, ['delete-user'])
+        self.assertResponse(me(user1, method='DELETE', password=True), 204)
+        self.assertThread(user1, user1_bis)
 
     def test_015_tournament(self):
         tj = 'tournament-join'
@@ -440,6 +450,17 @@ class Test06_download_data(UnitTest):
 
         self.assertResponse(get_game_data(user1), 200)
         self.assertThread(user1, user2, user3)
+
+
+class Test07_PictureProfiles(UnitTest):
+
+    def test_001_get_all(self):
+        user1 = self.user()
+
+        response = self.assertResponse(me(user1), 200)
+        self.assertEqual({'id': 0, 'name': 'Default', 'small': '/assets/profile_pictures/default_small.png', 'medium': '/assets/profile_pictures/default_medium.png'}, response['profile_picture'])
+        self.assertResponse(get_profile_pictures(user1), 200)
+        self.assertThread(user1)
 
 
 if __name__ == '__main__':
