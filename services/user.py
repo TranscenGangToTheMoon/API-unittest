@@ -42,3 +42,10 @@ def get_game_data(user):
         endpoint=f'private/export-data/{user["id"]}/',
         port=8003,
     )
+
+
+def get_profile_pictures(user):
+    return make_request(
+        endpoint=f'users/profile-pictures/',
+        token=user['token'],
+    )
