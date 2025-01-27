@@ -312,14 +312,17 @@ class Test04_UpdateLobby(UnitTest):
 class Test05_UpdateParticipantLobby(UnitTest):
 
     def test_001_set_ready_to_true(self):
-        user1 = self.user(['lobby-join'])
-        user2 = self.user(['lobby-update-participant'])
+        user1 = self.user(['lobby-join', 'lobby-join'])
+        user2 = self.user(['lobby-join', 'lobby-update-participant'])
+        user3 = self.user(['lobby-update-participant'])
 
-        code = self.assertResponse(create_lobby(user1), 201, get_field='code')
+        code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
 
         self.assertResponse(join_lobby(user2, code), 201)
+        self.assertResponse(join_lobby(user3, code), 201)
         self.assertTrue(self.assertResponse(join_lobby(user1, code, data={'is_ready': True}), 200, get_field='is_ready'))
-        self.assertThread(user1, user2)
+        self.assertTrue(self.assertResponse(join_lobby(user3, code, data={'is_ready': True}), 403, {'detail': 'You cannot set ready as a spectator.'}))
+        self.assertThread(user1, user2, user3)
 
     def test_002_change_team(self):
         user1 = self.user()
