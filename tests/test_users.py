@@ -472,7 +472,15 @@ class Test07_PictureProfiles(UnitTest):
         self.assertResponse(set_profile_pictures(user1, 19), 200)
         self.assertThread(user1, user2)
 
-    def test_010_invalid_select(self):
+    def test_003_unlock_tournament_pp(self):
+        user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
+        user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
+
+        id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
+        self.assertResponse(friend_request(id, user2), 201)
+        self.assertResponse(set_profile_pictures(user1, 19), 200)
+        self.assertThread(user1, user2)
+
     def test_004_unlock_duel_pp(self):
         scorer = int(100 / MAX_SCORE - 10)
         user1 = self.user([gs] * 10 + [ppu, ppu] + [gs] * scorer + [ppu] + [gs] * (40 - scorer) + [ppu] + [gs] * 50 + [ppu])
