@@ -612,16 +612,7 @@ class Test07_PictureProfiles(UnitTest):
         self.assertResponse(set_profile_pictures(user1, 17), 200)
         self.assertThread(user1, user2)
 
-    def test_009_unlock_scorer_pp(self):
-        user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
-        user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
-
-        id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
-        self.assertResponse(friend_request(id, user2), 201)
-        self.assertResponse(set_profile_pictures(user1, 19), 200)
-        self.assertThread(user1, user2)
-
-    def test_010_unlock_friend_pp(self):
+    def test_009_unlock_friend_pp(self):
         user1 = self.user([afr, ppu] + [afr] * 49 + [ppu])
 
         for nb, pp in ((1, 19), (49, 20)):
@@ -633,7 +624,7 @@ class Test07_PictureProfiles(UnitTest):
             self.assertResponse(set_profile_pictures(user1, pp), 200)
         self.assertThread(user1)
 
-    def test_011_unlock_win_streak_pp(self):
+    def test_010_unlock_win_streak_pp(self):
         user1 = self.user([gs] * 10 + [ppu, ppu])
         user2 = self.user([gs] * 10)
 
@@ -645,7 +636,7 @@ class Test07_PictureProfiles(UnitTest):
         self.assertResponse(set_profile_pictures(user1, 21), 200)
         self.assertThread(user1, user2)
 
-    def test_012_invalid_select(self):
+    def test_011_invalid_select(self):
         user1 = self.user()
 
         self.assertResponse(set_profile_pictures(user1, 132456), 404)
