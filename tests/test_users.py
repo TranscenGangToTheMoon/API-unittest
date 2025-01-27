@@ -29,6 +29,7 @@ tmf = 'tournament-match-finish'
 tf = 'tournament-finish'
 lj = 'lobby-join'
 lup = 'lobby-update-participant'
+afr = 'accept-friend-request'
 
 
 class Test01_GetUsers(UnitTest):
@@ -577,13 +578,16 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1, user2)
 
     def test_010_unlock_friend_pp(self):
-        user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
-        user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
+        user1 = self.user([afr, ppu] + [afr] * 49 + [ppu])
 
-        id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
-        self.assertResponse(friend_request(id, user2), 201)
-        self.assertResponse(set_profile_pictures(user1, 19), 200)
-        self.assertThread(user1, user2)
+        for nb, pp in ((1, 19), (49, 20)):
+            for _ in range(nb):
+                user2 = self.user(['receive-friend-request', ppu])
+                id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
+                self.assertResponse(friend_request(id, user2), 201)
+                self.assertThread(user2)
+            self.assertResponse(set_profile_pictures(user1, pp), 200)
+        self.assertThread(user1)
 
     def test_011_unlock_win_streak_pp(self):
         user1 = self.user([gs] * 10 + [ppu, ppu])
