@@ -5,11 +5,11 @@ from services.blocked import blocked_user, unblocked_user
 from services.friend import create_friendship
 from services.game import score, get_games, get_tournament
 from services.stats import set_trophies
-from services.tournament import create_tournament, join_tournament, ban_user, search_tournament, invite_user, tj, ts, \
-    gs, tmf, tf, tsa, post_message
+from services.tournament import create_tournament, join_tournament, ban_user, search_tournament, invite_user, post_message
 from utils.config import MAX_SCORE
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
+from utils.sse_event import ppu, tj, ts, gs, tmf, tf, tsa
 
 
 class Test01_Tournament(UnitTest):
@@ -362,6 +362,36 @@ class Test06_LeaveTournament(UnitTest):
                 break
         self.assertThread(user1, user2)
 
+    def test_008_reconnect(self):
+        user1 = self.user([ppu, ppu, ppu, tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
+        user2 = self.user([ppu, ppu, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
+        user3 = self.user([ppu, tj, ts, gs, tmf, tmf, tmf, tf])
+        user4 = self.user([ts, gs, tmf, tmf, tmf, tf])
+
+        self.assertResponse(set_trophies(user1, 1000), 201)
+        self.assertResponse(set_trophies(user2, 500), 201)
+        self.assertResponse(set_trophies(user3, 200), 201)
+
+        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
+        self.assertResponse(join_tournament(user2, code), 201)
+        self.assertResponse(join_tournament(user3, code), 201)
+        self.assertResponse(join_tournament(user4, code), 201)
+
+        time.sleep(5)
+
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
+
+        time.sleep(5)
+
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        self.assertThread(user1, user2, user3, user4)
+
 
 class Test07_GetTournament(UnitTest):
 
@@ -518,7 +548,7 @@ class Test08_InviteTournament(UnitTest):
 
         code = self.assertResponse(create_tournament(user1, private=True), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
-        self.assertResponse(invite_user(user2, user3, code), 403, {'detail': 'Only creator can update this tournament.'}) # pas bon message d'erreur
+        self.assertResponse(invite_user(user2, user3, code), 403, {'detail': 'Only creator can update this tournament.'}) # todo pas bon message d'erreur
         self.assertThread(user1, user2, user3)
 
     def test_007_user_already_in_tournament(self):

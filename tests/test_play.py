@@ -8,9 +8,7 @@ from services.play import play
 from services.stats import set_trophies
 from services.tournament import join_tournament, create_tournament
 from utils.my_unittest import UnitTest
-
-lj = 'lobby-join'
-lup = 'lobby-update-participant'
+from utils.sse_event import lj, lup
 
 
 class Test01_Play(UnitTest):

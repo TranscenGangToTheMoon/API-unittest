@@ -4,9 +4,10 @@ import unittest
 
 from services.game import create_game, is_in_game, score, finish_match, get_tournament, get_games
 from services.stats import set_trophies
-from services.tournament import join_tournament, create_tournament, tj, ts, gs, tmf, tf
+from services.tournament import join_tournament, create_tournament
 from utils.config import MAX_SCORE
 from utils.my_unittest import UnitTest
+from utils.sse_event import tj, ts, gs, tmf, tf
 
 
 class Test01_Game(UnitTest):

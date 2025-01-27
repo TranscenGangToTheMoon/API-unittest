@@ -3,13 +3,6 @@ from typing import Literal
 from utils.generate_random import rnstr
 from utils.request import make_request
 
-tj = 'tournament-join'
-tsa = 'tournament-start-at'
-ts = 'tournament-start'
-gs = 'game-start'
-tmf = 'tournament-match-finish'
-tf = 'tournament-finish'
-
 
 def create_tournament(user, data=None, method: Literal['GET', 'POST', 'PATCH', 'DELETE'] = 'POST', private=None, size=4):
     if data is None:

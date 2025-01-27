@@ -16,20 +16,12 @@ from services.user import get_user, me, get_chat_data, get_data, get_game_data, 
 from utils.config import MAX_SCORE
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
+from utils.sse_event import tj, ts, gs, tmf, tf, ppu, lj, lup, afr
 
 
 # TODO fguirama: test update user
 # TODO fguirama: test get friend field
 # TODO fguirama: test get status field
-gs = 'game-start'
-ppu = 'profile-picture-unlocked'
-tj = 'tournament-join'
-ts = 'tournament-start'
-tmf = 'tournament-match-finish'
-tf = 'tournament-finish'
-lj = 'lobby-join'
-lup = 'lobby-update-participant'
-afr = 'accept-friend-request'
 
 
 class Test01_GetUsers(UnitTest):
