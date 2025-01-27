@@ -21,6 +21,12 @@ from utils.my_unittest import UnitTest
 # TODO fguirama: test update user
 # TODO fguirama: test get friend field
 # TODO fguirama: test get status field
+gs = 'game-start'
+ppu = 'profile-picture-unlocked'
+tj = 'tournament-join'
+ts = 'tournament-start'
+tmf = 'tournament-match-finish'
+tf = 'tournament-finish'
 
 
 class Test01_GetUsers(UnitTest):
@@ -244,12 +250,6 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user1_bis)
 
     def test_015_tournament(self):
-        tj = 'tournament-join'
-        ts = 'tournament-start'
-        gs = 'game-start'
-        tmf = 'tournament-match-finish'
-        tf = 'tournament-finish'
-
         user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, 'delete-user'])
         user2 = self.user([tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
         user3 = self.user([tj, ts, gs, tmf, tmf, tmf, tf])
@@ -473,6 +473,20 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1, user2)
 
     def test_010_invalid_select(self):
+    def test_004_unlock_duel_pp(self):
+        scorer = int(100 / MAX_SCORE - 10)
+        user1 = self.user([gs] * 10 + [ppu, ppu] + [gs] * scorer + [ppu] + [gs] * (40 - scorer) + [ppu] + [gs] * 50 + [ppu])
+        user2 = self.user([gs] * 100)
+
+        for game, pp in ((10, 7), (40, 8), (50, 9)):
+            for _ in range(game):
+                self.assertResponse(play(user1), 201)
+                self.assertResponse(play(user2), 201)
+                for _ in range(MAX_SCORE):
+                    self.assertResponse(score(user1['id']), 200)
+            self.assertResponse(set_profile_pictures(user1, pp), 200)
+        self.assertThread(user1, user2)
+
         user1 = self.user()
 
         self.assertResponse(set_profile_pictures(user1, 132456), 404)
