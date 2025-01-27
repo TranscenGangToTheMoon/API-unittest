@@ -550,12 +550,15 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1, user2)
 
     def test_011_unlock_win_streak_pp(self):
-        user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
-        user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
+        user1 = self.user([gs] * 10 + [ppu, ppu])
+        user2 = self.user([gs] * 10)
 
-        id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
-        self.assertResponse(friend_request(id, user2), 201)
-        self.assertResponse(set_profile_pictures(user1, 19), 200)
+        for _ in range(10):
+            self.assertResponse(play(user1), 201)
+            self.assertResponse(play(user2), 201)
+            for _ in range(MAX_SCORE):
+                self.assertResponse(score(user1['id']), 200)
+        self.assertResponse(set_profile_pictures(user1, 21), 200)
         self.assertThread(user1, user2)
 
     def test_012_invalid_select(self):
