@@ -27,6 +27,8 @@ tj = 'tournament-join'
 ts = 'tournament-start'
 tmf = 'tournament-match-finish'
 tf = 'tournament-finish'
+lj = 'lobby-join'
+lup = 'lobby-update-participant'
 
 
 class Test01_GetUsers(UnitTest):
@@ -496,13 +498,39 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1, user2)
 
     def test_005_unlock_clash_pp(self):
-        user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
-        user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
+        def set_ready():
+            for u in (user1, user2, user3):
+                self.assertTrue(self.assertResponse(join_lobby(u, code1, data={'is_ready': True}), 200, get_field='is_ready'))
 
-        id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
-        self.assertResponse(friend_request(id, user2), 201)
-        self.assertResponse(set_profile_pictures(user1, 19), 200)
-        self.assertThread(user1, user2)
+            for u in (user4, user5, user6):
+                self.assertTrue(self.assertResponse(join_lobby(u, code2, data={'is_ready': True}), 200, get_field='is_ready'))
+
+        scorer = int(100 / MAX_SCORE - 10)
+        game = [lup, lup, gs]
+        user1 = self.user([lj, lj] + game * 10 + [ppu, ppu] + game * scorer + [ppu] + game * (40 - scorer) + [ppu] + game * 50 + [ppu])
+        user2 = self.user([lj] + game * 10 + [ppu, ppu] + game * 40 + [ppu] + game * 50 + [ppu])
+        user3 = self.user(game * 10 + [ppu, ppu] + game * 40 + [ppu] + game * 50 + [ppu])
+        user4 = self.user([lj, lj] + game * 100)
+        user5 = self.user([lj] + game * 100)
+        user6 = self.user(game * 100)
+
+        code1 = self.assertResponse(create_lobby(user1), 201, get_field='code')
+        self.assertResponse(join_lobby(user2, code1), 201)
+        self.assertResponse(join_lobby(user3, code1), 201)
+
+        code2 = self.assertResponse(create_lobby(user4), 201, get_field='code')
+        self.assertResponse(join_lobby(user5, code2), 201)
+        self.assertResponse(join_lobby(user6, code2), 201)
+
+        for game, pp in ((10, 4), (40, 5), (50, 6)):
+            for _ in range(game):
+                set_ready()
+                for _ in range(MAX_SCORE):
+                    self.assertResponse(score(user1['id']), 200)
+            self.assertResponse(set_profile_pictures(user1, pp), 200)
+            self.assertResponse(set_profile_pictures(user2, pp), 200)
+            self.assertResponse(set_profile_pictures(user3, pp), 200)
+        self.assertThread(user1, user2, user3, user4, user5, user6)
 
     def test_006_unlock_ranked_pp(self):
         user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
