@@ -543,17 +543,61 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1, user2)
 
     def test_007_unlock_fun_player_pp(self):
-        scorer = int(100 / MAX_SCORE)
-        user1 = self.user([gs] * 10 + [ppu, ppu] + [gs] * (scorer - 10) + [ppu])
-        user2 = self.user([gs] * scorer)
+        user1 = self.user([gs, gs] + [lj, lj, lup, lup, gs] + [ppu, ppu, ppu, tj, tj, tj, ts, gs, tmf, ppu, tmf, gs, tmf, tf, ppu])
+        user2 = self.user([gs] + [lj, lup, lup, gs, 'lobby-leave', 'lobby-update-participant'])
+        user3 = self.user([gs] + [lup, lup, gs, 'lobby-leave', 'lobby-update-participant'])
+        user4 = self.user([lj, lj, lup, lup, gs])
+        user5 = self.user([lj, lup, lup, gs])
+        user6 = self.user([lup, lup, gs])
+        user7 = self.user([ppu, ppu, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
+        user8 = self.user([ppu, tj, ts, gs, tmf, tmf, tmf, tf])
+        user9 = self.user([ts, gs, tmf, tmf, tmf, tf])
 
-        for _ in range(scorer):
-            self.assertResponse(play(user1), 201)
-            self.assertResponse(play(user2), 201)
-            for _ in range(MAX_SCORE):
-                self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(set_profile_pictures(user1, 17), 200)
-        self.assertThread(user1, user2)
+        # Duel
+        self.assertResponse(play(user1), 201)
+        self.assertResponse(play(user2), 201)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        # Ranked
+        self.assertResponse(play(user1, game_mode='ranked'), 201)
+        self.assertResponse(play(user3, game_mode='ranked'), 201)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        # Clash
+        code1 = self.assertResponse(create_lobby(user1), 201, get_field='code')
+        self.assertResponse(join_lobby(user2, code1), 201)
+        self.assertResponse(join_lobby(user3, code1), 201)
+        code2 = self.assertResponse(create_lobby(user4), 201, get_field='code')
+        self.assertResponse(join_lobby(user5, code2), 201)
+        self.assertResponse(join_lobby(user6, code2), 201)
+        for u in (user1, user2, user3):
+            self.assertResponse(join_lobby(u, code1, data={'is_ready': True}), 200, get_field='is_ready')
+        for u in (user4, user5, user6):
+            self.assertResponse(join_lobby(u, code2, data={'is_ready': True}), 200, get_field='is_ready')
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        # Tournament
+        self.assertResponse(set_trophies(user1, 1000), 201)
+        self.assertResponse(set_trophies(user7, 500), 201)
+        self.assertResponse(set_trophies(user8, 200), 201)
+        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
+        self.assertResponse(join_tournament(user7, code), 201)
+        self.assertResponse(join_tournament(user8, code), 201)
+        self.assertResponse(join_tournament(user9, code), 201)
+        time.sleep(5)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user7['id']), 200)
+        time.sleep(5)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        self.assertResponse(set_profile_pictures(user1, 16), 200)
+        self.assertThread(user1, user2, user3, user4, user5, user6, user7, user8, user9)
 
     def test_008_unlock_scorer_pp(self):
         scorer = int(100 / MAX_SCORE)
