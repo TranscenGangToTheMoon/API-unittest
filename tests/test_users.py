@@ -534,13 +534,13 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5, user6)
 
     def test_006_unlock_ranked_pp(self):
-        user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
-        user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
+        user1 = self.user([ppu, ppu, ppu, ppu, ppu, ppu])
 
-        id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
-        self.assertResponse(friend_request(id, user2), 201)
-        self.assertResponse(set_profile_pictures(user1, 19), 200)
-        self.assertThread(user1, user2)
+        for trophies, pp in ((100, 10), (400, 11), (500, 12), (1000, 13), (1000, 14), (2000, 15)):
+            self.assertResponse(set_trophies(user1, trophies), 201)
+            self.assertResponse(set_profile_pictures(user1, pp), 200)
+
+        self.assertThread(user1)
 
     def test_007_unlock_fun_player_pp(self):
         user1 = self.user([gs, gs] + [lj, lj, lup, lup, gs] + [ppu, ppu, ppu, tj, tj, tj, ts, gs, tmf, ppu, tmf, gs, tmf, tf, ppu])
