@@ -647,6 +647,23 @@ class Test10_FinishMatch(UnitTest):
         self.assertFalse(self.assertResponse(create_lobby(user5, method='GET'), 200, get_field='is_playing'))
         self.assertThread(user1, user2, user3, user4, user5, user6)
 
+    def test_003_user_on_banch(self):
+        user1 = self.user(['lobby-join', 'lobby-join', 'lobby-update-participant', 'game-start'])
+        user2 = self.user(['lobby-join', 'lobby-update-participant', 'game-start'])
+        user3 = self.user(['lobby-update-participant', 'lobby-update-participant', 'lobby-spectate-game'])
+
+        code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
+        self.assertResponse(join_lobby(user2, code), 201)
+        self.assertResponse(join_lobby(user3, code), 201)
+
+        self.assertResponse(join_lobby(user1, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user2, code, data={'is_ready': True}), 200)
+
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        self.assertThread(user1, user2, user3)
+
 
 if __name__ == '__main__':
     unittest.main()
