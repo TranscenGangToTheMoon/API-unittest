@@ -7,6 +7,7 @@ from services.user import me
 from utils.config import LONG_QUERY
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
+from utils.sse_event import ppu
 
 
 class Test01_CreateChat(UnitTest):
@@ -20,8 +21,8 @@ class Test01_CreateChat(UnitTest):
         self.assertThread(user1, user2)
 
     def test_002_accept_chat_from_friend_only(self):
-        user1 = self.user(['accept-friend-request'])
-        user2 = self.user(['receive-friend-request'])
+        user1 = self.user(['accept-friend-request', ppu])
+        user2 = self.user(['receive-friend-request', ppu])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         self.assertResponse(create_chat(user1, user2['username']), 201)
@@ -58,8 +59,8 @@ class Test02_CreateChatError(UnitTest):
         self.assertThread(user1)
 
     def test_005_accept_chat_from_none(self):
-        user1 = self.user(['accept-friend-request'])
-        user2 = self.user(['receive-friend-request'])
+        user1 = self.user(['accept-friend-request', ppu])
+        user2 = self.user(['receive-friend-request', ppu])
 
         self.assertResponse(accept_chat(user2, 'none'), 200)
         self.assertFriendResponse(create_friendship(user1, user2))
@@ -67,8 +68,8 @@ class Test02_CreateChatError(UnitTest):
         self.assertThread(user1, user2)
 
     def test_006_already_chat_with(self):
-        user1 = self.user(['accept-friend-request'])
-        user2 = self.user(['receive-friend-request'])
+        user1 = self.user(['accept-friend-request', ppu])
+        user2 = self.user(['receive-friend-request', ppu])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         self.assertResponse(create_chat(user1, user2['username']), 201)
