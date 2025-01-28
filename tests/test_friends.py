@@ -263,7 +263,7 @@ class Test02_FriendRequest(UnitTest):
         user2 = self.user(['receive-friend-request'])
 
         friend_request_id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
-        self.assertResponse(friend_request(friend_request_id, user1), 403, {'detail': 'you cannot accept your own friend request.'})
+        self.assertResponse(friend_request(friend_request_id, user1), 403, {'detail': 'You cannot accept your own friend request.'})
         self.assertThread(user1, user2)
 
     def test_014_guest_user_make_friend_request(self):
