@@ -7,7 +7,7 @@ from services.stats import set_trophies
 from services.tournament import join_tournament, create_tournament
 from utils.config import MAX_SCORE
 from utils.my_unittest import UnitTest
-from utils.sse_event import tj, ts, gs, tmf, tf
+from utils.sse_event import tj, ts, gs, tmf, tf, ppu
 
 
 class Test01_Game(UnitTest):
@@ -232,15 +232,14 @@ class Test03_Finish(UnitTest):
 class Test04_Tournament(UnitTest):
 
     def test_001_tournament(self):
-        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
+        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, ppu])
         user2 = self.user([tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
         user3 = self.user([tj, ts, gs, tmf, tmf, tmf, tf])
         user4 = self.user([ts, gs, tmf, tmf, tmf, tf])
 
-        self.assertResponse(set_trophies(user1, 1000), 201)
-        self.assertResponse(set_trophies(user2, 500), 201)
-        self.assertResponse(set_trophies(user3, 200), 201)
-        self.assertResponse(set_trophies(user4, 100), 201)
+        self.assertResponse(set_trophies(user1, 30), 201)
+        self.assertResponse(set_trophies(user2, 20), 201)
+        self.assertResponse(set_trophies(user3, 10), 201)
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
