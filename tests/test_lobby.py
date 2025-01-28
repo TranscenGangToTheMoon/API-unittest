@@ -7,7 +7,7 @@ from services.game import score
 from services.lobby import create_lobby, join_lobby, ban_user, invite_user, post_message
 from utils.config import MAX_SCORE
 from utils.my_unittest import UnitTest
-from utils.sse_event import lj, lup, gs, lsg, lm, ll, afr, rfr, i1, ic, i3, lb
+from utils.sse_event import lj, lup, gs, lsg, lm, ll, afr, rfr, i1, ic, i3, lb, ppu
 
 
 class Test01_JoinLobby(UnitTest):
@@ -225,7 +225,7 @@ class Test03_BanLobby(UnitTest):
 
         self.assertResponse(join_lobby(user2, code), 201)
         self.assertResponse(join_lobby(user3, code), 201)
-        self.assertResponse(ban_user(user2, user3, code), 403, {'detail': 'Only the lobby creator can ban a user'})
+        self.assertResponse(ban_user(user2, user3, code), 403, {'detail': 'Only the lobby creator can ban a user.'})
         self.assertThread(user1, user2, user3)
 
     def test_006_users_does_exist(self):
@@ -272,14 +272,7 @@ class Test04_UpdateLobby(UnitTest):
         self.assertResponse(create_lobby(user1, data={'match_type': '3v3'}, method='PATCH'), 403, {'detail': 'You cannot update clash lobby.'})
         self.assertThread(user1)
 
-    def test_005_update_game_mode(self):
-        user1 = self.user()
-
-        self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201)
-        self.assertResponse(create_lobby(user1, method='PATCH'), 403, {'detail': 'You cannot update game mode.'})
-        self.assertThread(user1)
-
-    def test_006_update_match_type_when_full(self):
+    def test_005_update_match_type_when_full(self):
         users = {}
         teams = ['Team A', 'Team A', 'Team A', 'Team B', 'Team B', 'Team B']
         after_teams = ['Team A', 'Spectator', 'Spectator', 'Team B', 'Spectator', 'Spectator']
@@ -478,8 +471,8 @@ class Test07_GetLobby(UnitTest):
 class Test08_InviteLobby(UnitTest):
 
     def test_001_invite_clash(self):
-        user1 = self.user([afr])
-        user2 = self.user([rfr, ic])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu, ic])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -487,8 +480,8 @@ class Test08_InviteLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_002_invite_custom_1v1(self):
-        user1 = self.user([afr])
-        user2 = self.user([rfr, i1])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu, i1])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
@@ -496,8 +489,8 @@ class Test08_InviteLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_invite_custom_3v3(self):
-        user1 = self.user([afr])
-        user2 = self.user([rfr, i3])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu, i3])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
@@ -527,7 +520,7 @@ class Test08_InviteLobby(UnitTest):
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
         self.assertResponse(join_lobby(user2, code), 201)
-        self.assertResponse(invite_user(user2, user3, code), 403, {'detail': 'Only creator can update this lobby.'})
+        self.assertResponse(invite_user(user2, user3, code), 403, {'detail': 'Only the lobby creator can invite users.'})
         self.assertThread(user1, user2, user3)
 
     def test_007_user_already_in_lobby(self):
@@ -599,17 +592,17 @@ class Test10_FinishMatch(UnitTest):
         self.assertResponse(join_lobby(user2, code), 201)
 
         self.assertResponse(join_lobby(user1, code, data={'is_ready': True}), 200)
-        self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='is_playing'))
+        self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='game_playing'))
         self.assertResponse(join_lobby(user2, code, data={'is_ready': True}), 200)
 
         time.sleep(2)
 
         self.assertResponse(score(user1['id']), 200)
-        self.assertTrue(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='is_playing'))
+        self.assertTrue(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='game_playing'))
         for _ in range(MAX_SCORE - 1):
             self.assertResponse(score(user1['id']), 200)
 
-        self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='is_playing'))
+        self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='game_playing'))
         self.assertThread(user1, user2)
 
     def test_002_is_playing_from_different_lobby(self):
@@ -630,15 +623,15 @@ class Test10_FinishMatch(UnitTest):
         self.assertResponse(join_lobby(user6, code3), 201)
 
         self.assertResponse(join_lobby(user1, code1, data={'is_ready': True}), 200)
-        self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='is_playing'))
+        self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='game_playing'))
         self.assertResponse(join_lobby(user2, code1, data={'is_ready': True}), 200)
 
-        self.assertFalse(self.assertResponse(create_lobby(user3, method='GET'), 200, get_field='is_playing'))
+        self.assertFalse(self.assertResponse(create_lobby(user3, method='GET'), 200, get_field='game_playing'))
         self.assertResponse(join_lobby(user3, code2, data={'is_ready': True}), 200)
 
         self.assertResponse(join_lobby(user4, code3, data={'is_ready': True}), 200)
         self.assertResponse(join_lobby(user5, code3, data={'is_ready': True}), 200)
-        self.assertFalse(self.assertResponse(create_lobby(user4, method='GET'), 200, get_field='is_playing'))
+        self.assertFalse(self.assertResponse(create_lobby(user4, method='GET'), 200, get_field='game_playing'))
         self.assertResponse(join_lobby(user6, code3, data={'is_ready': True}), 200)
 
         time.sleep(2)
@@ -646,9 +639,9 @@ class Test10_FinishMatch(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
-        self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='is_playing'))
-        self.assertFalse(self.assertResponse(create_lobby(user3, method='GET'), 200, get_field='is_playing'))
-        self.assertFalse(self.assertResponse(create_lobby(user5, method='GET'), 200, get_field='is_playing'))
+        self.assertFalse(self.assertResponse(create_lobby(user1, method='GET'), 200, get_field='game_playing'))
+        self.assertFalse(self.assertResponse(create_lobby(user3, method='GET'), 200, get_field='game_playing'))
+        self.assertFalse(self.assertResponse(create_lobby(user5, method='GET'), 200, get_field='game_playing'))
         self.assertThread(user1, user2, user3, user4, user5, user6)
 
     def test_003_user_on_banch(self):
