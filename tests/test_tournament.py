@@ -4,12 +4,13 @@ import unittest
 from services.blocked import blocked_user, unblocked_user
 from services.friend import create_friendship
 from services.game import score, get_games, get_tournament
+from services.lobby import create_lobby, join_lobby
 from services.stats import set_trophies
 from services.tournament import create_tournament, join_tournament, ban_user, search_tournament, invite_user, post_message
 from utils.config import MAX_SCORE
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
-from utils.sse_event import ppu, tj, ts, gs, tmf, tf, tsa
+from utils.sse_event import ppu, tj, ts, gs, tmf, tf, tsa, lj
 
 
 class Test01_Tournament(UnitTest):
@@ -430,8 +431,7 @@ class Test07_GetTournament(UnitTest):
         user1 = self.user()
         user2 = self.user()
 
-        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
-
+        self.assertResponse(create_tournament(user1), 201, get_field='code')
         self.assertResponse(create_tournament(user2, method='GET'), 404, {'detail': 'You do not belong to any tournament.'})
         self.assertThread(user1, user2)
 
@@ -1021,6 +1021,52 @@ class Test11_Message(UnitTest):
         self.assertResponse(post_message(user1, code, data={'content': ['caca', 'pipi']}), 400)
         self.assertResponse(post_message(user1, code, data={'content': {'prout': 48}}), 400)
         self.assertThread(user1)
+
+
+class Test12_BlockedTournament(UnitTest):
+
+    def test_001_block_reconnect(self):
+        user1 = self.user([ppu, ppu, ppu, tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, ppu])
+        user2 = self.user([ppu, ppu, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
+        user3 = self.user([ppu, tj, ts, gs, tmf, tmf, tmf, tf])
+        user4 = self.user([ts, gs, tmf, lj])
+        user5 = self.user()
+        user6 = self.user()
+
+        self.assertResponse(blocked_user(user4, user5['id']), 201)
+
+        self.assertResponse(set_trophies(user1, 1000), 201)
+        self.assertResponse(set_trophies(user2, 500), 201)
+        self.assertResponse(set_trophies(user3, 200), 201)
+
+        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
+        self.assertResponse(join_tournament(user2, code), 201)
+        self.assertResponse(join_tournament(user3, code), 201)
+        self.assertResponse(join_tournament(user4, code), 201)
+
+        time.sleep(5)
+
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        time.sleep(1)
+        block_id = self.assertResponse(blocked_user(user4, user6['id']), 201, get_field=True)
+        self.assertResponse(join_tournament(user4, code, method='DELETE'), 204)
+
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
+
+        time.sleep(5)
+
+        code = self.assertResponse(create_lobby(user4), 201, get_field='code')
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        self.assertResponse(join_lobby(user5, code), 404)
+        self.assertResponse(join_lobby(user6, code), 404)
+        self.assertResponse(unblocked_user(user4, block_id), 204)
+        self.assertResponse(join_lobby(user6, code), 201)
+        self.assertThread(user1, user2, user3, user4, user5, user6)
 
 
 if __name__ == '__main__':
