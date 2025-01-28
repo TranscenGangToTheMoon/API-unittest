@@ -29,8 +29,8 @@ class Test01_Friend(UnitTest):
         self.assertThread(user1)
 
     def test_003_get_friends(self):
-        user1 = self.user([afr, afr, afr, afr, afr, afr, afr])
-        users = [self.user([rfr]) for _ in range(7)]
+        user1 = self.user([afr, ppu, afr, afr, afr, afr, afr, afr])
+        users = [self.user([rfr, ppu]) for _ in range(7)]
 
         for user_tmp in users:
             self.assertFriendResponse(create_friendship(user1, user_tmp))
@@ -39,10 +39,10 @@ class Test01_Friend(UnitTest):
         self.assertThread(user1, *users)
 
     def test_004_get_friends_is_online(self):
-        user1 = self.user([afr] * 5)
-        user2 = self.user([rfr])
-        users_online = [self.user([rfr]) for _ in range(2)]
-        users = [self.user([rfr]) for _ in range(2)]
+        user1 = self.user([afr, ppu] + [afr] * 4)
+        user2 = self.user([rfr, ppu])
+        users_online = [self.user([rfr, ppu]) for _ in range(2)]
+        users = [self.user([rfr, ppu]) for _ in range(2)]
 
         self.assertFriendResponse(create_friendship(user1, user2))
         for user_tmp in users:
@@ -62,8 +62,8 @@ class Test01_Friend(UnitTest):
         self.assertThread(user1, *users_online)
 
     def test_005_friends_then_block(self):
-        user1 = self.user([afr, df])
-        user2 = self.user([rfr, df])
+        user1 = self.user([afr, ppu, df])
+        user2 = self.user([rfr, ppu, df])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         self.assertResponse(get_friends(user2), 200, count=1)
@@ -75,8 +75,8 @@ class Test01_Friend(UnitTest):
         self.assertThread(user1, user2)
 
     def test_006_delete_friend_user1(self):
-        user1 = self.user([afr])
-        user2 = self.user([rfr, df])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu, df])
 
         friendship_id = self.assertFriendResponse(create_friendship(user1, user2))
         self.assertResponse(friend(user1, friendship_id), 200)
@@ -87,8 +87,8 @@ class Test01_Friend(UnitTest):
         self.assertThread(user1, user2)
 
     def test_007_delete_friend_user2(self):
-        user1 = self.user([afr, df])
-        user2 = self.user([rfr])
+        user1 = self.user([afr, ppu, df])
+        user2 = self.user([rfr, ppu])
 
         friendship_id = self.assertFriendResponse(create_friendship(user1, user2))
         self.assertResponse(friend(user1, friendship_id), 200)
@@ -99,8 +99,8 @@ class Test01_Friend(UnitTest):
         self.assertThread(user1, user2)
 
     def test_008_delete_friend_not_belong_user(self):
-        user1 = self.user([afr])
-        user2 = self.user([rfr])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu])
         user3 = self.user()
 
         friendship_id = self.assertFriendResponse(create_friendship(user1, user2))
@@ -111,10 +111,10 @@ class Test01_Friend(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_009_delete_friend_sse(self):
-        user1 = self.user([afr, df, afr, df, afr, df])
-        user2 = self.user([rfr])
-        user3 = self.user([rfr, df])
-        user4 = self.user([rfr, du])
+        user1 = self.user([afr, ppu, df, afr, df, afr, df])
+        user2 = self.user([rfr, ppu])
+        user3 = self.user([rfr, ppu, df])
+        user4 = self.user([rfr, ppu, du])
 
         friendship_id = self.assertFriendResponse(create_friendship(user1, user2))
         self.assertResponse(friend(user2, friendship_id, 'DELETE'), 204)
@@ -160,8 +160,8 @@ class Test02_FriendRequest(UnitTest):
         self.assertThread(user1, user2)
 
     def test_004_already_friends(self):
-        user1 = self.user([afr])
-        user2 = self.user([rfr])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         self.assertResponse(friend_requests(user1, user2), 409, {'detail': 'You are already friends with this user.'})
@@ -250,8 +250,8 @@ class Test02_FriendRequest(UnitTest):
         self.assertThread(user1, user2, user3, user4)
 
     def test_012_delete_friend_request_after_became_friend(self):
-        user1 = self.user([afr])
-        user2 = self.user([rfr])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu])
 
         friend_request_id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
         self.assertResponse(friend_request(friend_request_id, user2), 201, get_field=True)
