@@ -244,7 +244,7 @@ class Test03_BanTournament(UnitTest):
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
 
         self.assertResponse(join_tournament(user2, code), 201)
-        self.assertResponse(ban_user(user2, user1, code), 403, {'detail': 'Only the tournament creator can ban a user'})
+        self.assertResponse(ban_user(user2, user1, code), 403, {'detail': 'Only the tournament creator can ban a user.'})
         self.assertThread(user1, user2)
 
     def test_006_users_does_exist(self):
@@ -517,10 +517,10 @@ class Test07_GetTournament(UnitTest):
 class Test08_InviteTournament(UnitTest):
 
     def test_001_invite(self):
-        user1 = self.user([afr, tj])
-        user2 = self.user([afr])
-        user3 = self.user([rfr, it])
-        user4 = self.user([rfr, it])
+        user1 = self.user([afr, ppu, tj])
+        user2 = self.user([afr, ppu])
+        user3 = self.user([rfr, ppu, it])
+        user4 = self.user([rfr, ppu, it])
 
         self.assertFriendResponse(create_friendship(user1, user3))
         self.assertFriendResponse(create_friendship(user2, user4))
@@ -646,15 +646,14 @@ class Test09_StartTournament(UnitTest):
 class Test10_FinishTournament(UnitTest):
 
     def test_001_finish(self):
-        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
+        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, ppu])
         user2 = self.user([tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
         user3 = self.user([tj, ts, gs, tmf, tmf, tmf, tf])
         user4 = self.user([ts, gs, tmf, tmf, tmf, tf])
 
-        self.assertResponse(set_trophies(user1, 1000), 201)
-        self.assertResponse(set_trophies(user2, 500), 201)
-        self.assertResponse(set_trophies(user3, 200), 201)
-        self.assertResponse(set_trophies(user4, 100), 201)
+        self.assertResponse(set_trophies(user1, 10), 201)
+        self.assertResponse(set_trophies(user2, 7), 201)
+        self.assertResponse(set_trophies(user3, 3), 201)
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
@@ -679,21 +678,20 @@ class Test10_FinishTournament(UnitTest):
     def test_002_finish_8_seeding(self):
         user1 = self.user([tj, tj, tj, tj, tj, tj, tsa, tj, ts, gs, tmf, tmf, tmf, tmf, gs, tmf, tmf, gs, tmf, tf])
         user2 = self.user([tj, tj, tj, tj, tj, tsa, tj, ts, gs, tmf, tmf, tmf, tmf, gs, tmf, tmf, tmf, tf])
-        user3 = self.user([tj, tj, tj, tj, tsa, tj, ts, gs, tmf, tmf, tmf, tmf, gs, tmf, tmf, gs, tmf, tf])
+        user3 = self.user([tj, tj, tj, tj, tsa, tj, ts, gs, tmf, tmf, tmf, tmf, gs, tmf, tmf, gs, tmf, tf, ppu])
         user4 = self.user([tj, tj, tj, tsa, tj, ts, gs, tmf, tmf, tmf, tmf, tmf, tmf, tmf, tf])
         user5 = self.user([tj, tj, tsa, tj, ts, gs, tmf, tmf, tmf, tmf, gs, tmf, tmf, tmf, tf])
         user6 = self.user([tj, tsa, tj, ts, gs, tmf, tmf, tmf, tmf, tmf, tmf, tmf, tf])
         user7 = self.user([tsa, tj, ts, gs, tmf, tmf, tmf, tmf, tmf, tmf, tmf, tf])
         user8 = self.user([ts, gs, tmf, tmf, tmf, tmf, tmf, tmf, tmf, tf])
 
-        self.assertResponse(set_trophies(user1, 500), 201)
-        self.assertResponse(set_trophies(user2, 400), 201)
-        self.assertResponse(set_trophies(user3, 300), 201)
-        self.assertResponse(set_trophies(user4, 200), 201)
-        self.assertResponse(set_trophies(user5, 100), 201)
-        self.assertResponse(set_trophies(user6, 50), 201)
-        self.assertResponse(set_trophies(user7, 25), 201)
-        self.assertResponse(set_trophies(user8, 10), 201)
+        self.assertResponse(set_trophies(user1, 14), 201)
+        self.assertResponse(set_trophies(user2, 12), 201)
+        self.assertResponse(set_trophies(user3, 10), 201)
+        self.assertResponse(set_trophies(user4, 8), 201)
+        self.assertResponse(set_trophies(user5, 6), 201)
+        self.assertResponse(set_trophies(user6, 4), 201)
+        self.assertResponse(set_trophies(user7, 2), 201)
 
         code = self.assertResponse(create_tournament(user1, size=8), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
@@ -752,7 +750,7 @@ class Test10_FinishTournament(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5, user6, user7, user8)
 
     def test_003_finish_16_seeding(self):
-        user1 = self.user([tj] * 13 + [tsa, tj, tj, ts, gs] + [tmf] * 8 + [gs] + [tmf] * 4 + [gs, tmf, tmf, gs, tmf, tf])
+        user1 = self.user([tj] * 13 + [tsa, tj, tj, ts, gs] + [tmf] * 8 + [gs] + [tmf] * 4 + [gs, tmf, tmf, gs, tmf, tf, ppu])
         user2 = self.user([tj] * 12 + [tsa, tj, tj, ts, gs] + [tmf] * 8 + [gs] + [tmf] * 4 + [gs, tmf, tmf, gs, tmf, tf])
         user3 = self.user([tj] * 11 + [tsa, tj, tj, ts, gs] + [tmf] * 8 + [gs] + [tmf] * 4 + [gs, tmf, tmf])
         user4 = self.user([tj] * 10 + [tsa, tj, tj, ts, gs] + [tmf] * 8 + [gs] + [tmf] * 4 + [gs, tmf, tmf])
@@ -769,21 +767,21 @@ class Test10_FinishTournament(UnitTest):
         user15 = self.user([tj, ts, gs] + [tmf] * 8)
         user16 = self.user([ts, gs] + [tmf] * 8)
 
-        self.assertResponse(set_trophies(user1, 4000), 201)
-        self.assertResponse(set_trophies(user2, 3750), 201)
-        self.assertResponse(set_trophies(user3, 3500), 201)
-        self.assertResponse(set_trophies(user4, 3250), 201)
-        self.assertResponse(set_trophies(user5, 3000), 201)
-        self.assertResponse(set_trophies(user6, 2750), 201)
-        self.assertResponse(set_trophies(user7, 2500), 201)
-        self.assertResponse(set_trophies(user8, 2250), 201)
-        self.assertResponse(set_trophies(user9, 2000), 201)
-        self.assertResponse(set_trophies(user10, 1750), 201)
-        self.assertResponse(set_trophies(user11, 1500), 201)
-        self.assertResponse(set_trophies(user12, 1250), 201)
-        self.assertResponse(set_trophies(user13, 1000), 201)
-        self.assertResponse(set_trophies(user14, 750), 201)
-        self.assertResponse(set_trophies(user15, 500), 201)
+        self.assertResponse(set_trophies(user1, 15), 201)
+        self.assertResponse(set_trophies(user2, 14), 201)
+        self.assertResponse(set_trophies(user3, 13), 201)
+        self.assertResponse(set_trophies(user4, 12), 201)
+        self.assertResponse(set_trophies(user5, 11), 201)
+        self.assertResponse(set_trophies(user6, 10), 201)
+        self.assertResponse(set_trophies(user7, 9), 201)
+        self.assertResponse(set_trophies(user8, 8), 201)
+        self.assertResponse(set_trophies(user9, 7), 201)
+        self.assertResponse(set_trophies(user10, 6), 201)
+        self.assertResponse(set_trophies(user11, 5), 201)
+        self.assertResponse(set_trophies(user12, 4), 201)
+        self.assertResponse(set_trophies(user13, 3), 201)
+        self.assertResponse(set_trophies(user14, 2), 201)
+        self.assertResponse(set_trophies(user15, 1), 201)
 
         code = self.assertResponse(create_tournament(user1, size=16), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
@@ -914,19 +912,19 @@ class Test10_FinishTournament(UnitTest):
     def test_003_finish_7_seeding(self):
         user1 = self.user([tj, tj, tj, tj, tj, tj, tsa, ts, tmf, tmf, tmf, tmf, gs, tmf, tmf, gs, tmf, tf])
         user2 = self.user([tj, tj, tj, tj, tj, tsa, ts, tmf, gs, tmf, tmf, tmf, gs, tmf, tmf, tmf, tf])
-        user3 = self.user([tj, tj, tj, tj, tsa, ts, tmf, gs, tmf, tmf, tmf, gs, tmf, tmf, gs, tmf, tf])
+        user3 = self.user([tj, tj, tj, tj, tsa, ts, tmf, gs, tmf, tmf, tmf, gs, tmf, tmf, gs, tmf, tf, ppu])
         user4 = self.user([tj, tj, tj, tsa, ts, tmf, gs, tmf, tmf, tmf, tmf, tmf, tmf, tf])
         user5 = self.user([tj, tj, tsa, ts, tmf, gs, tmf, tmf, tmf, gs, tmf, tmf, tmf, tf])
         user6 = self.user([tj, tsa, ts, tmf, gs, tmf, tmf, tmf, tmf, tmf, tmf, tf])
         user7 = self.user([tsa, ts, tmf, gs, tmf, tmf, tmf, tmf, tmf, tmf, tf])
 
-        self.assertResponse(set_trophies(user1, 3000), 201)
-        self.assertResponse(set_trophies(user2, 2500), 201)
-        self.assertResponse(set_trophies(user3, 2000), 201)
-        self.assertResponse(set_trophies(user4, 1500), 201)
-        self.assertResponse(set_trophies(user5, 1000), 201)
-        self.assertResponse(set_trophies(user6, 500), 201)
-        self.assertResponse(set_trophies(user7, 50), 201)
+        self.assertResponse(set_trophies(user1, 7), 201)
+        self.assertResponse(set_trophies(user2, 6), 201)
+        self.assertResponse(set_trophies(user3, 5), 201)
+        self.assertResponse(set_trophies(user4, 4), 201)
+        self.assertResponse(set_trophies(user5, 3), 201)
+        self.assertResponse(set_trophies(user6, 2), 201)
+        self.assertResponse(set_trophies(user7, 1), 201)
 
         code = self.assertResponse(create_tournament(user1, size=8), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
