@@ -671,6 +671,25 @@ class Test10_FinishMatch(UnitTest):
 
         self.assertThread(user1, user2, user3, user4, user5)
 
+    def test_004_game_playing(self):
+        user1 = self.user(['lobby-join', 'lobby-update-participant', 'game-start', 'lobby-join'])
+        user2 = self.user(['lobby-update-participant', 'game-start', 'lobby-join'])
+        user3 = self.user()
+
+        code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
+        game_code = self.assertResponse(join_lobby(user2, code), 201, get_field='game_playing')
+        self.assertIsNone(game_code)
+        self.assertResponse(join_lobby(user1, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user2, code, data={'is_ready': True}), 200)
+
+        self.assertResponse(score(user1['id']), 200)
+        game_code = self.assertResponse(join_lobby(user3, code), 201, get_field='game_playing')
+        self.assertIsNotNone(game_code)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user1['id']), 200)
+
+        self.assertThread(user1, user2, user3)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -552,7 +552,7 @@ class Test08_InviteTournament(UnitTest):
 
         code = self.assertResponse(create_tournament(user1, private=True), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
-        self.assertResponse(invite_user(user2, user3, code), 403, {'detail': 'Only creator can update this tournament.'}) # todo pas bon message d'erreur
+        self.assertResponse(invite_user(user2, user3, code), 403, {'detail': 'Only the tournament creator can invite users.'})
         self.assertThread(user1, user2, user3)
 
     def test_007_user_already_in_tournament(self):
