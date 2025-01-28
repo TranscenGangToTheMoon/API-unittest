@@ -363,10 +363,10 @@ class Test06_LeaveTournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_008_reconnect(self):
-        user1 = self.user([ppu, ppu, ppu, tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
+        user1 = self.user([ppu, ppu, ppu, tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, ppu])
         user2 = self.user([ppu, ppu, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
         user3 = self.user([ppu, tj, ts, gs, tmf, tmf, tmf, tf])
-        user4 = self.user([ts, gs, tmf, tmf, tmf, tf])
+        user4 = self.user([ts, gs, tmf, tmf, tf])
 
         self.assertResponse(set_trophies(user1, 1000), 201)
         self.assertResponse(set_trophies(user2, 500), 201)
@@ -382,11 +382,15 @@ class Test06_LeaveTournament(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
+        time.sleep(1)
+        self.assertResponse(join_tournament(user4, code, method='DELETE'), 204)
+
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user2['id']), 200)
 
         time.sleep(5)
 
+        self.assertResponse(join_tournament(user4, code), 201)
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
