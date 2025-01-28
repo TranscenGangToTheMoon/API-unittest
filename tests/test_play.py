@@ -8,7 +8,7 @@ from services.play import play
 from services.stats import set_trophies
 from services.tournament import join_tournament, create_tournament
 from utils.my_unittest import UnitTest
-from utils.sse_event import lj, lup, gs, ts, tj
+from utils.sse_event import lj, lup, gs, ts, tj, ppu
 
 
 class Test01_Play(UnitTest):
@@ -170,10 +170,10 @@ class Test02_PlayError(UnitTest):
         self.assertResponse(play(user1), 401, {'code': 'sse_connection_required', 'detail': 'You need to be connected to SSE to access this resource.'})
 
     def test_008_ranked_trophies(self):
-        user1 = self.user([gs])
-        user2 = self.user([gs])
-        user3 = self.user([gs])
-        user4 = self.user([gs])
+        user1 = self.user([ppu, ppu, ppu, gs])
+        user2 = self.user([ppu, ppu, gs])
+        user3 = self.user([ppu, ppu, gs])
+        user4 = self.user([ppu, ppu, ppu, gs])
 
         self.assertResponse(set_trophies(user1, 1000), 201)
         self.assertResponse(set_trophies(user2, 900), 201)
@@ -190,10 +190,10 @@ class Test02_PlayError(UnitTest):
         self.assertThread(user1, user2, user3, user4)
 
     def test_009_ranked_trophies_closer(self):
-        user1 = self.user([gs])
-        user2 = self.user([gs])
-        user3 = self.user([gs])
-        user4 = self.user([gs])
+        user1 = self.user([ppu, ppu, ppu, gs])
+        user2 = self.user([ppu, ppu, gs])
+        user3 = self.user([ppu, ppu, gs])
+        user4 = self.user([ppu, ppu, ppu, gs])
 
         self.assertResponse(set_trophies(user1, 1000), 201)
         self.assertResponse(set_trophies(user2, 949), 201)
