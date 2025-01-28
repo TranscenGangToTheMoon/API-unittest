@@ -8,7 +8,7 @@ from services.tournament import join_tournament, create_tournament
 from services.user import me
 from utils.config import MAX_SCORE
 from utils.my_unittest import UnitTest
-from utils.sse_event import gs, tj, ts, tmf, tf
+from utils.sse_event import gs, tj, ts, tmf, tf, ppu
 
 validata_data = {
     'id': 3,
@@ -82,7 +82,7 @@ class Test02_Stats(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_win_tournament_from_endpoint(self):
-        user1 = self.user()
+        user1 = self.user([ppu])
 
         self.assertResponse(finish_tournament_stat(user1), 201)
         response = self.assertResponse(get_stats(user1), 200)
@@ -93,15 +93,14 @@ class Test02_Stats(UnitTest):
         self.assertThread(user1)
 
     def test_004_win_tournament(self):
-        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
+        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, ppu])
         user2 = self.user([tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
         user3 = self.user([tj, ts, gs, tmf, tmf, tmf, tf])
         user4 = self.user([ts, gs, tmf, tmf, tmf, tf])
 
-        self.assertResponse(set_trophies(user1, 1000), 201)
-        self.assertResponse(set_trophies(user2, 500), 201)
-        self.assertResponse(set_trophies(user3, 200), 201)
-        self.assertResponse(set_trophies(user4, 100), 201)
+        self.assertResponse(set_trophies(user1, 10), 201)
+        self.assertResponse(set_trophies(user2, 7), 201)
+        self.assertResponse(set_trophies(user3, 4), 201)
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
