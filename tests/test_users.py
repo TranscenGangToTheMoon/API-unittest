@@ -58,9 +58,7 @@ class Test02_UserMe(UnitTest):
 
         response = self.assertResponse(me(user1), 200)
         last_online = response['last_online']
-        print(response)
-        print({'id': response['id'], 'username': user1['username'], 'is_guest': False, 'created_at': response['created_at'], 'profile_picture': None, 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
-        self.assertDictEqual(response, {'id': response['id'], 'username': user1['username'], 'is_guest': False, 'created_at': response['created_at'], 'profile_picture': None, 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
+        self.assertDictEqual(response, {'id': response['id'], 'username': user1['username'], 'is_guest': False, 'profile_picture': {'id': 0, 'name': 'Default', 'small': '/assets/profile_pictures/default_small.png', 'medium': '/assets/profile_pictures/default_medium.png'}, 'created_at': response['created_at'], 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
         self.assertThread(user1)
         time.sleep(5)
         self.assertNotEqual(last_online, self.assertResponse(me(user1), 200)['last_online'])
@@ -69,7 +67,7 @@ class Test02_UserMe(UnitTest):
         user1 = self.user(guest=True)
 
         response = self.assertResponse(me(user1), 200)
-        self.assertDictEqual(response, {'id': response['id'], 'username': response['username'], 'is_guest': True, 'created_at': response['created_at'], 'profile_picture': None, 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
+        self.assertDictEqual(response, {'id': response['id'], 'username': response['username'], 'is_guest': True, 'profile_picture': {'id': 0, 'name': 'Default', 'small': '/assets/profile_pictures/default_small.png', 'medium': '/assets/profile_pictures/default_medium.png'}, 'created_at': response['created_at'], 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
         self.assertThread(user1)
 
 
@@ -380,8 +378,8 @@ class Test06_download_data(UnitTest):
         user4 = self.user()
         user5 = self.user()
         user6 = self.user([rfr, ppu])
-        user7 = self.user([rfr, ppu])
-        user8 = self.user([rfr, ppu])
+        user7 = self.user([rfr])
+        user8 = self.user([rfr])
         user9 = self.user()
         user10 = self.user([gs])
         user11 = self.user([gs])
