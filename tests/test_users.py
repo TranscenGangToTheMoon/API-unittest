@@ -19,11 +19,6 @@ from utils.my_unittest import UnitTest
 from utils.sse_event import tj, ts, gs, tmf, tf, ppu, lj, lup, afr
 
 
-# TODO fguirama: test update user
-# TODO fguirama: test get friend field
-# TODO fguirama: test get status field
-
-
 class Test01_GetUsers(UnitTest):
 
     def test_001_get_user(self):
@@ -79,12 +74,11 @@ class Test02_UserMe(UnitTest):
 class Test03_DeleteUser(UnitTest):
 
     def test_001_delete(self):
-        # user1 = self.user(['delete-user'])
-        token = input('-> ')
-        self.assertResponse(me({'token': token, 'password': '24LzfZ!P5RQj'}, method='DELETE', password=True), 204)
-        # self.assertResponse(me(user1, method='DELETE', password=True), 204)
-        # self.assertResponse(me(user1), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
-        # self.assertThread(user1)
+        user1 = self.user(['delete-user'])
+
+        self.assertResponse(me(user1, method='DELETE', password=True), 204)
+        self.assertResponse(me(user1), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
+        self.assertThread(user1)
 
     def test_002_already_delete(self):
         user1 = self.user(['delete-user'])
@@ -134,20 +128,30 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_007_user_in_start_tournament(self):
-        user1 = self.user(['tournament-join', 'delete-user'])
-        user2 = self.user(['tournament-leave'])
-        user3 = self.user()
-        name = rnstr()
+        user1 = self.user([tj, tj, tj, ts, gs, tmf, 'delete-user'])
+        user2 = self.user([tj, tj, ts, gs, tmf, tmf,  gs, tmf, tf, ppu])
+        user3 = self.user([tj, ts, gs, tmf, tmf, tmf, tf])
+        user4 = self.user([ts, gs, tmf, tmf, gs, tmf, tf])
 
-        code = self.assertResponse(create_tournament(user1, {'name': 'Delete User ' + name}), 201, get_field='code')
+        self.assertResponse(set_trophies(user1, 30), 201)
+        self.assertResponse(set_trophies(user2, 20), 201)
+        self.assertResponse(set_trophies(user3, 10), 201)
+
+        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
-        response = self.assertResponse(search_tournament(user3, name), 200, count=1)
-        self.assertEqual(2, response['results'][0]['n_participants'])
+        self.assertResponse(join_tournament(user3, code), 201)
+        self.assertResponse(join_tournament(user4, code), 201)
+
+        time.sleep(5)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user4['id']), 200)
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
-        response = self.assertResponse(search_tournament(user3, name), 200, count=1)
-        self.assertEqual(1, response['results'][0]['n_participants'])
-        # TODO fguirama: make when tournament work
-        self.assertThread(user1, user2, user3)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
+        time.sleep(5)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
+        self.assertThread(user1, user2, user3, user4)
 
     def test_008_chat_with(self):
         user1 = self.user(['delete-user'])
