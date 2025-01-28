@@ -9,6 +9,7 @@ from services.sse import events
 from services.user import me
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
+from utils.sse_event import rfr, gs, rm, lj, cfr, du, afr, i1, i3, ic, ll, lm, it, tj, tl, tm, ts, tsa, tmf, tf, lup
 
 
 class Test01_SSE(UnitTest):
@@ -29,9 +30,9 @@ class Test01_SSE(UnitTest):
         user3 = self.user()
 
         user1_bis = user1.copy()
-        self.connect_to_sse(user1, ['receive-friend-request'])
+        self.connect_to_sse(user1, [rfr])
         time.sleep(1)
-        self.connect_to_sse(user1_bis, ['receive-friend-request', 'receive-friend-request'])
+        self.connect_to_sse(user1_bis, [rfr, rfr])
 
         self.assertResponse(friend_requests(user2, user1), 201)
         self.assertThread(user1, user2)
@@ -54,7 +55,7 @@ class Test01_SSE(UnitTest):
         self.assertEqual(username, response['username'])
 
     def test_006_delete_user(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
 
         self.assertResponse(me(user1, 'DELETE', password=True), 204)
         self.assertThread(user1)
@@ -63,13 +64,13 @@ class Test01_SSE(UnitTest):
 class Test02_EventsEndpoint(UnitTest):
 
     def test_001_send_event(self):
-        user1 = self.user(['receive-message', 'game-start', 'lobby-join', 'cancel-friend-request', 'delete-user'], connect_game=False)
+        user1 = self.user([rm, gs, lj, cfr, du], connect_game=False)
 
-        self.assertResponse(events(user1, data={'content': 'coucou', 'chat_id': 1}, event_code='receive-message', kwargs={'username': 'didier', 'message': 'coucou'}), 201)
-        self.assertResponse(events(user1, event_code='game-start'), 201)
-        self.assertResponse(events(user1, event_code='lobby-join', kwargs={'username': 'robert'}), 201)
-        self.assertResponse(events(user1, event_code='cancel-friend-request'), 201)
-        self.assertResponse(events(user1, event_code='delete-user'), 201)
+        self.assertResponse(events(user1, data={'content': 'coucou', 'chat_id': 1}, event_code=rm, kwargs={'username': 'didier', 'message': 'coucou'}), 201)
+        self.assertResponse(events(user1, event_code=gs), 201)
+        self.assertResponse(events(user1, event_code=lj, kwargs={'username': 'robert'}), 201)
+        self.assertResponse(events(user1, event_code=cfr), 201)
+        self.assertResponse(events(user1, event_code=du), 201)
         self.assertThread(user1)
 
     def test_002_missing_field(self):
@@ -77,7 +78,7 @@ class Test02_EventsEndpoint(UnitTest):
 
         errors_request_data = [
             {'users_id': [user1['id']]},
-            {'event_code': 'cancel-friend-request'},
+            {'event_code': cfr},
         ]
 
         for error in errors_request_data:
@@ -116,23 +117,23 @@ class Test02_EventsEndpoint(UnitTest):
 
     def test_005_missing_data_kwargs(self):
         events_code = [
-            'receive-message',
-            'accept-friend-request',
-            'receive-friend-request',
-            'invite-1v1',
-            'invite-3v3',
-            'invite-clash',
-            'invite-tournament',
-            'lobby-join',
-            'lobby-leave',
-            'lobby-message',
-            'tournament-join',
-            'tournament-leave',
-            'tournament-message',
-            'tournament-start',
-            'tournament-start-at',
-            'tournament-match-finish',
-            'tournament-finish',
+            rm,
+            afr,
+            rfr,
+            i1,
+            i3,
+            ic,
+            it,
+            lj,
+            ll,
+            lm,
+            tj,
+            tl,
+            tm,
+            ts,
+            tsa,
+            tmf,
+            tf,
         ]
         user1 = self.user(connect_game=False)
 
@@ -141,9 +142,9 @@ class Test02_EventsEndpoint(UnitTest):
         self.assertThread(user1)
 
     def test_006_invalid_username_kwargs(self):
-        user1 = self.user(['receive-message'])
+        user1 = self.user([rm])
 
-        self.assertResponse(events(user1, data={'content': 'coucou', 'chat_id': 1}, event_code='receive-message', kwargs={'username': 132456789, 'message': 'coucou'}), 201)
+        self.assertResponse(events(user1, data={'content': 'coucou', 'chat_id': 1}, event_code=rm, kwargs={'username': 132456789, 'message': 'coucou'}), 201)
         self.assertThread(user1)
 
 
@@ -165,8 +166,8 @@ class Test03_SSEConnectionClose(UnitTest):
         self.assertThread(user2)
 
     def test_002_leave_lobby_when_disconnect(self):
-        user1 = self.user(['lobby-join'])
-        user2 = self.user(['lobby-leave', 'lobby-update-participant'])
+        user1 = self.user([lj])
+        user2 = self.user([ll, lup])
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
         self.assertResponse(join_lobby(user2, code), 201)

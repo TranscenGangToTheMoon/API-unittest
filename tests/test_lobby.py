@@ -7,6 +7,7 @@ from services.game import score
 from services.lobby import create_lobby, join_lobby, ban_user, invite_user, post_message
 from utils.config import MAX_SCORE
 from utils.my_unittest import UnitTest
+from utils.sse_event import lj, lup, gs, lsg, lm, ll, afr, rfr, i1, ic, i3, lb
 
 
 class Test01_JoinLobby(UnitTest):
@@ -18,8 +19,8 @@ class Test01_JoinLobby(UnitTest):
         self.assertThread(user1)
 
     def test_002_join_lobby(self):
-        user1 = self.user(['lobby-join', 'lobby-join'])
-        user2 = self.user(['lobby-join'])
+        user1 = self.user([lj, lj])
+        user2 = self.user([lj])
         user3 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -29,9 +30,9 @@ class Test01_JoinLobby(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_003_join_two_lobby(self):
-        user1 = self.user(['lobby-join', 'lobby-leave'])
+        user1 = self.user([lj, ll])
         user2 = self.user()
-        user3 = self.user(['lobby-join'])
+        user3 = self.user([lj])
 
         code1 = self.assertResponse(create_lobby(user1), 201, get_field='code')
         code2 = self.assertResponse(create_lobby(user3), 201, get_field='code')
@@ -50,7 +51,7 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertThread(user1)
 
     def test_002_already_join(self):
-        user1 = self.user(['lobby-join'])
+        user1 = self.user([lj])
         user2 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -61,8 +62,8 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_lobby_is_full(self):
-        user1 = self.user(['lobby-join', 'lobby-join'])
-        user2 = self.user(['lobby-join'])
+        user1 = self.user([lj, lj])
+        user2 = self.user([lj])
         user3 = self.user()
         user4 = self.user()
 
@@ -104,8 +105,8 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertThread(user1, *users)
 
     def test_008_blocked_user(self):
-        user1 = self.user(['lobby-join', 'lobby-leave'])
-        user2 = self.user(['lobby-banned'])
+        user1 = self.user([lj, ll])
+        user2 = self.user([lb])
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
 
@@ -120,8 +121,8 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_009_blocked_user_not_creator(self):
-        user1 = self.user(['lobby-join', 'lobby-join'])
-        user2 = self.user(['lobby-join'])
+        user1 = self.user([lj, lj])
+        user2 = self.user([lj])
         user3 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -135,8 +136,8 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_010_blocked_then_unblock(self):
-        user1 = self.user(['lobby-join', 'lobby-leave', 'lobby-join'])
-        user2 = self.user(['lobby-banned'])
+        user1 = self.user([lj, ll, lj])
+        user2 = self.user([lb])
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
 
@@ -161,9 +162,9 @@ class Test02_ErrorJoinLobby(UnitTest):
         self.assertThread(user2)
 
     def test_012_user_blocked_creator(self):
-        user1 = self.user(['lobby-join', 'lobby-join', 'lobby-leave'])
-        user2 = self.user(['lobby-join', 'lobby-leave'])
-        user3 = self.user(['lobby-banned'])
+        user1 = self.user([lj, lj, ll])
+        user2 = self.user([lj, ll])
+        user3 = self.user([lb])
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
         self.assertResponse(join_lobby(user2, code), 201)
@@ -177,8 +178,8 @@ class Test02_ErrorJoinLobby(UnitTest):
 class Test03_BanLobby(UnitTest):
 
     def test_001_ban_lobby(self):
-        user1 = self.user(['lobby-join', 'lobby-leave'])
-        user2 = self.user(['lobby-banned'])
+        user1 = self.user([lj, ll])
+        user2 = self.user([lb])
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
 
@@ -216,8 +217,8 @@ class Test03_BanLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_005_not_creator(self):
-        user1 = self.user(['lobby-join', 'lobby-join'])
-        user2 = self.user(['lobby-join'])
+        user1 = self.user([lj, lj])
+        user2 = self.user([lj])
         user3 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -238,7 +239,7 @@ class Test03_BanLobby(UnitTest):
 class Test04_UpdateLobby(UnitTest):
 
     def test_001_update_lobby(self):
-        user1 = self.user(['lobby-join'])
+        user1 = self.user([lj])
         user2 = self.user(['lobby-update'])
 
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
@@ -255,7 +256,7 @@ class Test04_UpdateLobby(UnitTest):
         self.assertThread(user1)
 
     def test_003_update_not_creator(self):
-        user1 = self.user(['lobby-join'])
+        user1 = self.user([lj])
         user2 = self.user()
 
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
@@ -283,7 +284,7 @@ class Test04_UpdateLobby(UnitTest):
         teams = ['Team A', 'Team A', 'Team A', 'Team B', 'Team B', 'Team B']
         after_teams = ['Team A', 'Spectator', 'Spectator', 'Team B', 'Spectator', 'Spectator']
         for i in range(6):
-            response = self.user((['lobby-join'] * (5 - i)) + (['lobby-update-participant'] * 4) + (['lobby-update'] * int(bool(i))))
+            response = self.user(([lj] * (5 - i)) + ([lup] * 4) + (['lobby-update'] * int(bool(i))))
             response['team'] = teams[i]
             response['after_team'] = after_teams[i]
             users[response['id']] = response
@@ -312,9 +313,9 @@ class Test04_UpdateLobby(UnitTest):
 class Test05_UpdateParticipantLobby(UnitTest):
 
     def test_001_set_ready_to_true(self):
-        user1 = self.user(['lobby-join', 'lobby-join'])
-        user2 = self.user(['lobby-join', 'lobby-update-participant'])
-        user3 = self.user(['lobby-update-participant'])
+        user1 = self.user([lj, lj])
+        user2 = self.user([lj, lup])
+        user3 = self.user([lup])
 
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
 
@@ -351,7 +352,7 @@ class Test05_UpdateParticipantLobby(UnitTest):
         self.assertThread(user1)
 
     def test_005_change_team_full(self):
-        user1 = self.user(['lobby-join'])
+        user1 = self.user([lj])
         user2 = self.user()
 
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
@@ -364,8 +365,8 @@ class Test05_UpdateParticipantLobby(UnitTest):
 class Test06_LeaveLobby(UnitTest):
 
     def test_001_leave_lobby(self):
-        user1 = self.user(['lobby-join', 'lobby-join', 'lobby-leave', 'lobby-leave'])
-        user2 = self.user(['lobby-join', 'lobby-leave'])
+        user1 = self.user([lj, lj, ll, ll])
+        user2 = self.user([lj, ll])
         user3 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -379,8 +380,8 @@ class Test06_LeaveLobby(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_002_leave_lobby_then_other_member_became_creator(self):
-        user1 = self.user(['lobby-join'])
-        user2 = self.user(['lobby-leave', 'lobby-update-participant'])
+        user1 = self.user([lj])
+        user2 = self.user([ll, lup])
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
 
@@ -393,9 +394,9 @@ class Test06_LeaveLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_guest_join_leave_lobby_then_destroy_lobby(self):
-        user1 = self.user(['lobby-join', 'lobby-join'])
-        user2 = self.user(['lobby-join', 'lobby-leave', 'lobby-destroy'], guest=True)
-        user3 = self.user(['lobby-leave', 'lobby-destroy'], guest=True)
+        user1 = self.user([lj, lj])
+        user2 = self.user([lj, ll, 'lobby-destroy'], guest=True)
+        user3 = self.user([ll, 'lobby-destroy'], guest=True)
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
         self.assertResponse(join_lobby(user2, code), 201)
@@ -422,7 +423,7 @@ class Test06_LeaveLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_006_leave_lobby_not_creator(self):
-        user1 = self.user(['lobby-join', 'lobby-leave'])
+        user1 = self.user([lj, ll])
         user2 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -453,7 +454,7 @@ class Test07_GetLobby(UnitTest):
         self.assertThread(user1)
 
     def test_002_get_lobby_participant(self):
-        user1 = self.user(['lobby-join'])
+        user1 = self.user([lj])
         user2 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -468,7 +469,7 @@ class Test07_GetLobby(UnitTest):
         user1 = self.user()
         user2 = self.user()
 
-        code = self.assertResponse(create_lobby(user1), 201, get_field='code')
+        self.assertResponse(create_lobby(user1), 201, get_field='code')
 
         self.assertResponse(create_lobby(user2, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
         self.assertThread(user1, user2)
@@ -477,8 +478,8 @@ class Test07_GetLobby(UnitTest):
 class Test08_InviteLobby(UnitTest):
 
     def test_001_invite_clash(self):
-        user1 = self.user(['accept-friend-request'])
-        user2 = self.user(['receive-friend-request', 'invite-clash'])
+        user1 = self.user([afr])
+        user2 = self.user([rfr, ic])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -486,8 +487,8 @@ class Test08_InviteLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_002_invite_custom_1v1(self):
-        user1 = self.user(['accept-friend-request'])
-        user2 = self.user(['receive-friend-request', 'invite-1v1'])
+        user1 = self.user([afr])
+        user2 = self.user([rfr, i1])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
@@ -495,8 +496,8 @@ class Test08_InviteLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_invite_custom_3v3(self):
-        user1 = self.user(['accept-friend-request'])
-        user2 = self.user(['receive-friend-request', 'invite-3v3'])
+        user1 = self.user([afr])
+        user2 = self.user([rfr, i3])
 
         self.assertFriendResponse(create_friendship(user1, user2))
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
@@ -520,7 +521,7 @@ class Test08_InviteLobby(UnitTest):
         self.assertThread(user1, user2)
 
     def test_006_not_creator(self):
-        user1 = self.user(['lobby-join'])
+        user1 = self.user([lj])
         user2 = self.user()
         user3 = self.user()
 
@@ -530,7 +531,7 @@ class Test08_InviteLobby(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_007_user_already_in_lobby(self):
-        user1 = self.user(['lobby-join'])
+        user1 = self.user([lj])
         user2 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -551,8 +552,8 @@ class Test08_InviteLobby(UnitTest):
 class Test09_Message(UnitTest):
 
     def test_001_test(self):
-        user1 = self.user(['lobby-join', 'lobby-join', 'lobby-message', 'lobby-leave'])
-        user2 = self.user(['lobby-join', 'lobby-message', 'lobby-leave', 'lobby-message'])
+        user1 = self.user([lj, lj, lm, ll])
+        user2 = self.user([lj, lm, ll, lm])
         user3 = self.user([])
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -591,8 +592,8 @@ class Test09_Message(UnitTest):
 class Test10_FinishMatch(UnitTest):
 
     def test_001_is_playing(self):
-        user1 = self.user(['lobby-join', 'lobby-update-participant', 'game-start'])
-        user2 = self.user(['lobby-update-participant', 'game-start'])
+        user1 = self.user([lj, lup, gs])
+        user2 = self.user([lup, gs])
 
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
         self.assertResponse(join_lobby(user2, code), 201)
@@ -612,12 +613,12 @@ class Test10_FinishMatch(UnitTest):
         self.assertThread(user1, user2)
 
     def test_002_is_playing_from_different_lobby(self):
-        user1 = self.user(['lobby-join', 'lobby-update-participant', 'game-start'])
-        user2 = self.user(['lobby-update-participant', 'game-start'])
-        user3 = self.user(['game-start'])
-        user4 = self.user(['lobby-join', 'lobby-join', 'lobby-update-participant', 'lobby-update-participant', 'game-start'])
-        user5 = self.user(['lobby-join', 'lobby-update-participant', 'lobby-update-participant', 'game-start'])
-        user6 = self.user(['lobby-update-participant', 'lobby-update-participant', 'game-start'])
+        user1 = self.user([lj, lup, gs])
+        user2 = self.user([lup, gs])
+        user3 = self.user([gs])
+        user4 = self.user([lj, lj, lup, lup, gs])
+        user5 = self.user([lj, lup, lup, gs])
+        user6 = self.user([lup, lup, gs])
 
         code1 = self.assertResponse(create_lobby(user1), 201, get_field='code')
         self.assertResponse(join_lobby(user2, code1), 201)
@@ -651,11 +652,11 @@ class Test10_FinishMatch(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5, user6)
 
     def test_003_user_on_banch(self):
-        user1 = self.user(['lobby-join', 'lobby-join', 'lobby-join', 'lobby-join', 'lobby-update-participant', 'game-start'])
-        user2 = self.user(['lobby-join', 'lobby-join', 'lobby-join', 'lobby-update-participant', 'game-start'])
-        user3 = self.user(['lobby-join', 'lobby-join', 'lobby-update-participant', 'lobby-update-participant', 'lobby-spectate-game'])
-        user4 = self.user(['lobby-join', 'lobby-update-participant', 'lobby-update-participant', 'lobby-spectate-game'])
-        user5 = self.user(['lobby-update-participant', 'lobby-update-participant', 'lobby-spectate-game'])
+        user1 = self.user([lj, lj, lj, lj, lup, gs])
+        user2 = self.user([lj, lj, lj, lup, gs])
+        user3 = self.user([lj, lj, lup, lup, lsg])
+        user4 = self.user([lj, lup, lup, lsg])
+        user5 = self.user([lup, lup, lsg])
 
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')
         self.assertResponse(join_lobby(user2, code), 201)
@@ -672,8 +673,8 @@ class Test10_FinishMatch(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5)
 
     def test_004_game_playing(self):
-        user1 = self.user(['lobby-join', 'lobby-update-participant', 'game-start', 'lobby-join'])
-        user2 = self.user(['lobby-update-participant', 'game-start', 'lobby-join'])
+        user1 = self.user([lj, lup, gs, lj])
+        user2 = self.user([lup, gs, lj])
         user3 = self.user()
 
         code = self.assertResponse(create_lobby(user1, game_mode='custom_game'), 201, get_field='code')

@@ -10,7 +10,7 @@ from services.tournament import create_tournament, join_tournament, ban_user, se
 from utils.config import MAX_SCORE
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
-from utils.sse_event import ppu, tj, ts, gs, tmf, tf, tsa, lj
+from utils.sse_event import ppu, tj, ts, gs, tmf, tf, tsa, lj, afr, rfr, it, tl, tm
 
 
 class Test01_Tournament(UnitTest):
@@ -22,7 +22,7 @@ class Test01_Tournament(UnitTest):
         self.assertThread(user1)
 
     def test_002_join_tournament(self):
-        user1 = self.user(['tournament-join'])
+        user1 = self.user([tj])
         user2 = self.user()
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -30,9 +30,9 @@ class Test01_Tournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_join_two_tournament(self):
-        user1 = self.user(['tournament-join', 'tournament-leave', 'tournament-join'])
+        user1 = self.user([tj, tl, tj])
         user2 = self.user()
-        user3 = self.user(['tournament-join'])
+        user3 = self.user([tj])
         user4 = self.user(guest=True)
 
         code1 = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -53,7 +53,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertThread(user1)
 
     def test_002_already_join(self):
-        user1 = self.user(['tournament-join'])
+        user1 = self.user([tj])
         user2 = self.user()
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -64,9 +64,9 @@ class Test02_ErrorTournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_already_started(self):
-        user1 = self.user(['tournament-join'] * 3 + ['tournament-start', 'game-start'])
+        user1 = self.user([tj] * 3 + [ts, gs])
         user2 = self.user()
-        users = [self.user(['tournament-join'] * (2 - i) + ['tournament-start', 'game-start']) for i in range(3)]
+        users = [self.user([tj] * (2 - i) + [ts, gs]) for i in range(3)]
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
 
@@ -99,7 +99,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_007_blocked_user(self):
-        user1 = self.user(['tournament-join', 'tournament-leave'])
+        user1 = self.user([tj, tl])
         user2 = self.user(['tournament-banned'])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -114,8 +114,8 @@ class Test02_ErrorTournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_008_blocked_user_not_creator(self):
-        user1 = self.user(['tournament-join', 'tournament-join'])
-        user2 = self.user(['tournament-join'])
+        user1 = self.user([tj, tj])
+        user2 = self.user([tj])
         user3 = self.user()
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -129,7 +129,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_009_blocked_then_unblock(self):
-        user1 = self.user(['tournament-join', 'tournament-leave', 'tournament-join'])
+        user1 = self.user([tj, tl, tj])
         user2 = self.user(['tournament-banned'])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -153,8 +153,8 @@ class Test02_ErrorTournament(UnitTest):
         self.assertThread(user1)
 
     def test_011_create_two_tournament_leave_first(self):
-        user1 = self.user(['tournament-join'])
-        user2 = self.user(['tournament-leave'])
+        user1 = self.user([tj])
+        user2 = self.user([tl])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
@@ -183,8 +183,8 @@ class Test02_ErrorTournament(UnitTest):
         self.assertThread(user1)
 
     def test_014_user_blocked_creator(self):
-        user1 = self.user(['tournament-join', 'tournament-join', 'tournament-leave'])
-        user2 = self.user(['tournament-join', 'tournament-leave'])
+        user1 = self.user([tj, tj, tl])
+        user2 = self.user([tj, tl])
         user3 = self.user(['tournament-banned'])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -199,7 +199,7 @@ class Test02_ErrorTournament(UnitTest):
 class Test03_BanTournament(UnitTest):
 
     def test_001_ban_tournament(self):
-        user1 = self.user(['tournament-join', 'tournament-leave'])
+        user1 = self.user([tj, tl])
         user2 = self.user(['tournament-banned'])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -238,7 +238,7 @@ class Test03_BanTournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_005_not_creator(self):
-        user1 = self.user(['tournament-join'])
+        user1 = self.user([tj])
         user2 = self.user()
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -279,8 +279,8 @@ class Test05_UpdateParticipantTournament(UnitTest):
 class Test06_LeaveTournament(UnitTest):
 
     def test_001_leave_tournament_then_destroy(self):
-        user1 = self.user(['tournament-join', 'tournament-join'])
-        users = [self.user(['tournament-join'] * (1 - i) + ['tournament-leave'] * (i + 1)) for i in range(2)]
+        user1 = self.user([tj, tj])
+        users = [self.user([tj] * (1 - i) + [tl] * (i + 1)) for i in range(2)]
 
         response = self.assertResponse(create_tournament(user1), 201)
         code = response['code']
@@ -306,8 +306,8 @@ class Test06_LeaveTournament(UnitTest):
         self.assertThread(user1, *users)
 
     def test_002_leave_tournament(self):
-        user1 = self.user(['tournament-join'])
-        user2 = self.user(['tournament-leave'])
+        user1 = self.user([tj])
+        user2 = self.user([tl])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
 
@@ -334,7 +334,7 @@ class Test06_LeaveTournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_006_leave_tournament_not_creator(self):
-        user1 = self.user(['tournament-join', 'tournament-leave'])
+        user1 = self.user([tj, tl])
         user2 = self.user()
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -347,8 +347,8 @@ class Test06_LeaveTournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_007_leave_tournament_then_come_back_still_creator(self):
-        user1 = self.user(['tournament-join'])
-        user2 = self.user(['tournament-leave', 'tournament-join'])
+        user1 = self.user([tj])
+        user2 = self.user([tl, tj])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
 
@@ -416,7 +416,7 @@ class Test07_GetTournament(UnitTest):
         self.assertThread(user1)
 
     def test_002_get_tournament_participant(self):
-        user1 = self.user(['tournament-join'])
+        user1 = self.user([tj])
         user2 = self.user()
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -498,8 +498,8 @@ class Test07_GetTournament(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_009_search_tournaments_banned(self):
-        user1 = self.user(['tournament-join', 'tournament-leave'])
-        user2 = self.user(['tournament-join', 'tournament-leave'])
+        user1 = self.user([tj, tl])
+        user2 = self.user([tj, tl])
         user3 = self.user(['tournament-banned', 'tournament-banned'])
         user4 = self.user()
         name = 'Banned ' + rnstr()
@@ -517,10 +517,10 @@ class Test07_GetTournament(UnitTest):
 class Test08_InviteTournament(UnitTest):
 
     def test_001_invite(self):
-        user1 = self.user(['accept-friend-request', 'tournament-join'])
-        user2 = self.user(['accept-friend-request'])
-        user3 = self.user(['receive-friend-request', 'invite-tournament'])
-        user4 = self.user(['receive-friend-request', 'invite-tournament'])
+        user1 = self.user([afr, tj])
+        user2 = self.user([afr])
+        user3 = self.user([rfr, it])
+        user4 = self.user([rfr, it])
 
         self.assertFriendResponse(create_friendship(user1, user3))
         self.assertFriendResponse(create_friendship(user2, user4))
@@ -546,7 +546,7 @@ class Test08_InviteTournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_006_not_creator_private_tournament(self):
-        user1 = self.user(['tournament-join'])
+        user1 = self.user([tj])
         user2 = self.user()
         user3 = self.user()
 
@@ -556,7 +556,7 @@ class Test08_InviteTournament(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_007_user_already_in_tournament(self):
-        user1 = self.user(['tournament-join'])
+        user1 = self.user([tj])
         user2 = self.user()
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
@@ -577,10 +577,10 @@ class Test08_InviteTournament(UnitTest):
 class Test09_StartTournament(UnitTest):
 
     def test_001_start_tournament_full(self):
-        user1 = self.user(['tournament-join'] * 3 + ['tournament-start'])
-        user2 = self.user(['tournament-join'] * 2 + ['tournament-start'])
-        user3 = self.user(['tournament-join'] + ['tournament-start'])
-        user4 = self.user(['tournament-start'])
+        user1 = self.user([tj] * 3 + [ts])
+        user2 = self.user([tj] * 2 + [ts])
+        user3 = self.user([tj] + [ts])
+        user4 = self.user([ts])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
@@ -591,8 +591,8 @@ class Test09_StartTournament(UnitTest):
         self.assertThread(user1, user2, user3, user4)
 
     def test_002_start_tournament_80(self):
-        users = [self.user(['tournament-join'] * (6 - i) + ['tournament-start-at', 'tournament-join', 'tournament-start', 'game-start']) for i in range(7)]
-        user1 = self.user(['tournament-start', 'game-start'])
+        users = [self.user([tj] * (6 - i) + [tsa, tj, ts, gs]) for i in range(7)]
+        user1 = self.user([ts, gs])
 
         code = self.assertResponse(create_tournament(users[0], size=8), 201, get_field='code')
         for u in users[1:]:
@@ -604,13 +604,13 @@ class Test09_StartTournament(UnitTest):
         self.assertThread(user1, *users)
 
     def test_003_cancel_start(self):
-        user1 = self.user([tj, tj, tj, tj, tj, tj, 'tournament-start-at', 'tournament-leave', 'tournament-start-cancel'])
-        user2 = self.user([tj, tj, tj, tj, tj, 'tournament-start-at', 'tournament-leave', 'tournament-start-cancel'])
-        user3 = self.user([tj, tj, tj, tj, 'tournament-start-at', 'tournament-leave', 'tournament-start-cancel'])
-        user4 = self.user([tj, tj, tj, 'tournament-start-at', 'tournament-leave', 'tournament-start-cancel'])
-        user5 = self.user([tj, tj, 'tournament-start-at', 'tournament-leave', 'tournament-start-cancel'])
-        user6 = self.user([tj, 'tournament-start-at', 'tournament-leave', 'tournament-start-cancel'])
-        user7 = self.user(['tournament-start-at'])
+        user1 = self.user([tj, tj, tj, tj, tj, tj, tsa, tl, 'tournament-start-cancel'])
+        user2 = self.user([tj, tj, tj, tj, tj, tsa, tl, 'tournament-start-cancel'])
+        user3 = self.user([tj, tj, tj, tj, tsa, tl, 'tournament-start-cancel'])
+        user4 = self.user([tj, tj, tj, tsa, tl, 'tournament-start-cancel'])
+        user5 = self.user([tj, tj, tsa, tl, 'tournament-start-cancel'])
+        user6 = self.user([tj, tsa, tl, 'tournament-start-cancel'])
+        user7 = self.user([tsa])
 
         code = self.assertResponse(create_tournament(user1, size=8), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
@@ -627,10 +627,10 @@ class Test09_StartTournament(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5, user6, user7)
 
     def test_004_ban_after_start(self):
-        user1 = self.user(['tournament-join', 'tournament-join', 'tournament-join', 'tournament-start', 'game-start'])
-        user2 = self.user(['tournament-join', 'tournament-join', 'tournament-start', 'game-start'])
-        user3 = self.user(['tournament-join', 'tournament-start', 'game-start'])
-        user4 = self.user(['tournament-start', 'game-start'])
+        user1 = self.user([tj, tj, tj, ts, gs])
+        user2 = self.user([tj, tj, ts, gs])
+        user3 = self.user([tj, ts, gs])
+        user4 = self.user([ts, gs])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
@@ -986,8 +986,8 @@ class Test10_FinishTournament(UnitTest):
 class Test11_Message(UnitTest):
 
     def test_001_test(self):
-        user1 = self.user(['tournament-join', 'tournament-join', 'tournament-message', 'tournament-leave'])
-        user2 = self.user(['tournament-join', 'tournament-message', 'tournament-leave', 'tournament-message'])
+        user1 = self.user([tj, tj, tm, tl])
+        user2 = self.user([tj, tm, tl, tm])
         user3 = self.user([])
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')

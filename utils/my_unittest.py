@@ -10,6 +10,7 @@ from services.auth import register, create_guest
 from services.game import is_in_game
 from services.user import me
 from utils.generate_random import rnstr
+from utils.sse_event import du, gs
 
 
 class UnitTest(unittest.TestCase):
@@ -97,10 +98,10 @@ class UnitTest(unittest.TestCase):
                                 continue
                             data = json.loads(data)
                             print(f"SSE RECEIVED {user['username']}: {data}", flush=True)
-                            if data['event_code'] == 'game-start' and connect_game:
+                            if data['event_code'] == gs and connect_game:
                                 self.assertResponse(is_in_game(user, data['data']['id']), 200)
                             user['thread_assertion'].append(data['event_code'])
-                            if event == 'delete-user':
+                            if event == du:
                                 break
         print(f"SSE DISCONNECTING {user['username']}...\n", flush=True)
 

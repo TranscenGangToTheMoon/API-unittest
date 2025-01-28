@@ -16,7 +16,7 @@ from services.user import get_user, me, get_chat_data, get_data, get_game_data, 
 from utils.config import MAX_SCORE
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
-from utils.sse_event import tj, ts, gs, tmf, tf, ppu, lj, lup, afr
+from utils.sse_event import tj, ts, gs, tmf, tf, ppu, lj, lup, afr, du, rfr, ll, df, cfr
 
 
 class Test01_GetUsers(UnitTest):
@@ -74,28 +74,28 @@ class Test02_UserMe(UnitTest):
 class Test03_DeleteUser(UnitTest):
 
     def test_001_delete(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
 
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(me(user1), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
         self.assertThread(user1)
 
     def test_002_already_delete(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
 
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(me(user1, method='DELETE', password=True), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
         self.assertThread(user1)
 
     def test_003_request_after_delete(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
 
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(create_lobby(user1), 401, {'code': 'user_not_found', 'detail': 'User not found.'})
         self.assertThread(user1)
 
     def test_004_user_in_lobby(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
         user2 = self.user()
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
@@ -105,8 +105,8 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2)
 
     def test_005_user_in_game(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         self.assertResponse(create_game(user1, user2), 201)
         time.sleep(1)
@@ -114,7 +114,7 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2)
 
     def test_006_user_in_tournament(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
         user2 = self.user()
         user3 = self.user()
         name = rnstr()
@@ -128,7 +128,7 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_007_user_in_start_tournament(self):
-        user1 = self.user([tj, tj, tj, ts, gs, tmf, 'delete-user'])
+        user1 = self.user([tj, tj, tj, ts, gs, tmf, du])
         user2 = self.user([tj, tj, ts, gs, tmf, tmf,  gs, tmf, tf, ppu])
         user3 = self.user([tj, ts, gs, tmf, tmf, tmf, tf])
         user4 = self.user([ts, gs, tmf, tmf, gs, tmf, tf])
@@ -154,7 +154,7 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2, user3, user4)
 
     def test_008_chat_with(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
         user2 = self.user()
 
         self.assertResponse(accept_chat(user2), 200)
@@ -165,7 +165,7 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2)
 
     def test_009_play_duel(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
         user2 = self.user()
 
         self.assertResponse(play(user1), 201)
@@ -177,7 +177,7 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2)
 
     def test_010_play_ranked(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
         user2 = self.user()
 
         self.assertResponse(play(user1, 'ranked'), 201)
@@ -189,8 +189,8 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2)
 
     def test_011_friend_request(self):
-        user1 = self.user(['delete-user'])
-        user2 = self.user(['receive-friend-request', 'cancel-friend-request'])
+        user1 = self.user([du])
+        user2 = self.user([rfr, cfr])
 
         friend_request_id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
         self.assertResponse(get_friend_requests_received(user2), 200, count=1)
@@ -200,9 +200,9 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2)
 
     def test_012_friend(self):
-        user1 = self.user(['accept-friend-request', 'accept-friend-request', 'delete-user'])
-        user2 = self.user(['receive-friend-request', 'delete-friend'])
-        user3 = self.user(['receive-friend-request', 'delete-friend'])
+        user1 = self.user([afr, afr, du])
+        user2 = self.user([rfr, df])
+        user3 = self.user([rfr, df])
 
         id = self.assertFriendResponse(create_friendship(user1, user2))
         self.assertFriendResponse(create_friendship(user1, user3))
@@ -217,7 +217,7 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2, user3)
 
     def test_013_blocked(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
         user2 = self.user()
 
         self.assertResponse(blocked_user(user2, user1['id']), 201)
@@ -227,8 +227,8 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2)
 
     def test_014_game(self):
-        user1 = self.user(['game-start', 'delete-user'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs, du])
+        user2 = self.user([gs])
 
         self.assertResponse(play(user1), 201)
         self.assertResponse(play(user2), 201)
@@ -243,16 +243,16 @@ class Test03_DeleteUser(UnitTest):
         user1 = self.user(sse=False)
         user1_bis = user1.copy()
 
-        self.connect_to_sse(user1, ['delete-user'])
-        self.connect_to_sse(user1_bis, ['delete-user'])
+        self.connect_to_sse(user1, [du])
+        self.connect_to_sse(user1_bis, [du])
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertThread(user1, user1_bis)
 
     def test_015_tournament(self):
-        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, 'delete-user'])
+        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, du])
         user2 = self.user([tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
         user3 = self.user([tj, ts, gs, tmf, tmf, tmf, tf])
-        user4 = self.user([ts, gs, tmf, tmf, tmf, tf, 'delete-user'])
+        user4 = self.user([ts, gs, tmf, tmf, tmf, tf, du])
 
         self.assertResponse(set_trophies(user1, 1000), 201)
         self.assertResponse(set_trophies(user2, 500), 201)
@@ -325,8 +325,8 @@ class Test05_RenameUser(UnitTest):
         self.assertThread(user1)
 
     def test_002_rename_user_friend(self):
-        user1 = self.user(['accept-friend-request'])
-        user2 = self.user(['receive-friend-request'])
+        user1 = self.user([afr])
+        user2 = self.user([rfr])
         new_username = user1['username'] + '_new'
 
         id = self.assertFriendResponse(create_friendship(user1, user2))
@@ -373,18 +373,18 @@ class Test05_RenameUser(UnitTest):
 class Test06_download_data(UnitTest):
 
     def test_001_download_data(self):
-        user1 = self.user(['accept-friend-request', 'receive-friend-request', 'receive-friend-request', 'receive-friend-request', 'game-start', 'game-start', 'game-start'])
-        user2 = self.user(['accept-friend-request'])
-        user3 = self.user(['accept-friend-request'])
+        user1 = self.user([afr, rfr, rfr, rfr, gs, gs, gs])
+        user2 = self.user([afr])
+        user3 = self.user([afr])
         user4 = self.user()
         user5 = self.user()
-        user6 = self.user(['receive-friend-request'])
-        user7 = self.user(['receive-friend-request'])
-        user8 = self.user(['receive-friend-request'])
+        user6 = self.user([rfr])
+        user7 = self.user([rfr])
+        user8 = self.user([rfr])
         user9 = self.user()
-        user10 = self.user(['game-start'])
-        user11 = self.user(['game-start'])
-        user12 = self.user(['game-start'])
+        user10 = self.user([gs])
+        user11 = self.user([gs])
+        user12 = self.user([gs])
         user13 = self.user()
 
         self.assertFriendResponse(create_friendship(user1, user6))
@@ -437,9 +437,9 @@ class Test06_download_data(UnitTest):
         self.assertThread(user1, user2, user3, user4)
 
     def test_003_game_data(self):
-        user1 = self.user(['game-start', 'game-start'])
-        user2 = self.user(['game-start'])
-        user3 = self.user(['game-start'])
+        user1 = self.user([gs, gs])
+        user2 = self.user([gs])
+        user3 = self.user([gs])
 
         for u in (user2, user3):
             self.assertResponse(create_game(user1, u), 201)
@@ -463,8 +463,8 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1)
 
     def test_002_update_pp(self):
-        user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
-        user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
+        user1 = self.user([afr, 'profile-picture-unlocked'])
+        user2 = self.user([rfr, 'profile-picture-unlocked'])
 
         id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
         self.assertResponse(friend_request(id, user2), 201)
@@ -472,8 +472,8 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_unlock_tournament_pp(self):
-        user1 = self.user(['accept-friend-request', 'profile-picture-unlocked'])
-        user2 = self.user(['receive-friend-request', 'profile-picture-unlocked'])
+        user1 = self.user([afr, 'profile-picture-unlocked'])
+        user2 = self.user([rfr, 'profile-picture-unlocked'])
 
         id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
         self.assertResponse(friend_request(id, user2), 201)
@@ -540,8 +540,8 @@ class Test07_PictureProfiles(UnitTest):
 
     def test_007_unlock_fun_player_pp(self):
         user1 = self.user([gs, gs] + [lj, lj, lup, lup, gs] + [ppu, ppu, ppu, tj, tj, tj, ts, gs, tmf, ppu, tmf, gs, tmf, tf, ppu])
-        user2 = self.user([gs] + [lj, lup, lup, gs, 'lobby-leave', 'lobby-update-participant'])
-        user3 = self.user([gs] + [lup, lup, gs, 'lobby-leave', 'lobby-update-participant'])
+        user2 = self.user([gs] + [lj, lup, lup, gs, ll, lup])
+        user3 = self.user([gs] + [lup, lup, gs, ll, lup])
         user4 = self.user([lj, lj, lup, lup, gs])
         user5 = self.user([lj, lup, lup, gs])
         user6 = self.user([lup, lup, gs])
@@ -613,7 +613,7 @@ class Test07_PictureProfiles(UnitTest):
 
         for nb, pp in ((1, 19), (49, 20)):
             for _ in range(nb):
-                user2 = self.user(['receive-friend-request', ppu])
+                user2 = self.user([rfr, ppu])
                 id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
                 self.assertResponse(friend_request(id, user2), 201)
                 self.assertThread(user2)

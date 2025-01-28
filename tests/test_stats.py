@@ -4,11 +4,11 @@ import unittest
 from services.game import create_game, score
 from services.play import play
 from services.stats import finish_match_stat, get_stats, get_ranked_stats, set_trophies, finish_tournament_stat
-from services.tournament import tj, ts, gs, tmf, tf, join_tournament, create_tournament
+from services.tournament import join_tournament, create_tournament
 from services.user import me
 from utils.config import MAX_SCORE
 from utils.my_unittest import UnitTest
-
+from utils.sse_event import gs, tj, ts, tmf, tf
 
 validata_data = {
     'id': 3,
@@ -58,8 +58,8 @@ class Test02_Stats(UnitTest):
         self.assertThread(user1)
 
     def test_002_ended_from_game(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         response = self.assertResponse(get_stats(user1), 200)
         for game_mode in response:
@@ -152,9 +152,9 @@ class Test03_StatsRanked(UnitTest):
         self.assertThread(user1)
 
     def test_002_trophies_test(self):
-        user1 = self.user(['game-start', 'game-start', 'game-start'])
-        user2 = self.user(['game-start', 'game-start', 'game-start', 'game-start'])
-        user3 = self.user(['game-start'])
+        user1 = self.user([gs, gs, gs])
+        user2 = self.user([gs, gs, gs, gs])
+        user3 = self.user([gs])
 
         self.assertResponse(play(user1, 'ranked'), 201)
         self.assertResponse(play(user2, 'ranked'), 201)

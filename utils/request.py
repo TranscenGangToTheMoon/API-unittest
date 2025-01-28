@@ -13,7 +13,7 @@ class RequestResult:
         self.json = json_data
 
 
-def make_request(endpoint, method: Literal['GET', 'POST', 'DELETE', 'PATCH', 'PUT'] = 'GET', token=None, data=None, port=4443, token_type='Bearer '):
+def make_request(endpoint, method='GET', token=None, data=None, port=4443, token_type='Bearer '):
     if data is not None:
         data = json.dumps(data)
 

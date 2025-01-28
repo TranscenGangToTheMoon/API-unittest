@@ -17,16 +17,16 @@ class Test01_Game(UnitTest):
         return random.randint(500, 1500)
 
     def test_001_create_game(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         self.assertResponse(create_game(user1, user2), 201)
         time.sleep(1)
         self.assertThread(user1, user2)
 
     def test_002_already_in_game(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         self.assertResponse(is_in_game(user1), 404)
         self.assertResponse(create_game(user1, user2), 201)
@@ -66,8 +66,8 @@ class Test01_Game(UnitTest):
         self.assertResponse(create_game(data={'game_mode': 'ranked'}), 400, {'teams': ['This field is required.']})
 
     def test_007_game_timeout(self):
-        user1 = self.user(['game-start'], connect_game=False)
-        user2 = self.user(['game-start'], connect_game=False)
+        user1 = self.user([gs], connect_game=False)
+        user2 = self.user([gs], connect_game=False)
 
         self.assertResponse(create_game(user1, user2), 201)
         self.assertResponse(is_in_game(user1), 200)
@@ -76,8 +76,8 @@ class Test01_Game(UnitTest):
         self.assertThread(user1, user2)
 
     def test_008_game_does_not_timeout(self):
-        user1 = self.user(['game-start'], connect_game=False)
-        user2 = self.user(['game-start'], connect_game=False)
+        user1 = self.user([gs], connect_game=False)
+        user2 = self.user([gs], connect_game=False)
 
         id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
         self.assertResponse(is_in_game(user1, id), 200)
@@ -87,8 +87,8 @@ class Test01_Game(UnitTest):
 
     def test_009_get_games(self):
         n = random.randint(2, 15)
-        user1 = self.user(['game-start'] * n)
-        users = [self.user(['game-start']) for _ in range(n)]
+        user1 = self.user([gs] * n)
+        users = [self.user([gs]) for _ in range(n)]
 
         for u in users:
             self.assertResponse(create_game(user1, u), 201)
@@ -104,9 +104,9 @@ class Test01_Game(UnitTest):
 class Test02_Score(UnitTest):
 
     def test_001_score(self):
-        user1 = self.user(['game-start'])
+        user1 = self.user([gs])
         score_1 = random.randint(0, MAX_SCORE - 1)
-        user2 = self.user(['game-start'])
+        user2 = self.user([gs])
         score_2 = random.randint(0, MAX_SCORE - 1)
 
         self.assertResponse(create_game(user1, user2), 201)
@@ -129,8 +129,8 @@ class Test02_Score(UnitTest):
 class Test03_Finish(UnitTest):
 
     def test_001_finish_game(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         self.assertResponse(create_game(user1, user2), 201)
         for _ in range(MAX_SCORE):
@@ -140,8 +140,8 @@ class Test03_Finish(UnitTest):
         self.assertThread(user1, user2)
 
     def test_002_finish_disconnect(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         match_id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
         for _ in range(MAX_SCORE - 1):
@@ -150,12 +150,12 @@ class Test03_Finish(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_finish_clash(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
-        user3 = self.user(['game-start'])
-        user4 = self.user(['game-start'])
-        user5 = self.user(['game-start'])
-        user6 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
+        user3 = self.user([gs])
+        user4 = self.user([gs])
+        user5 = self.user([gs])
+        user6 = self.user([gs])
 
         self.assertResponse(create_game(data={'game_mode': 'clash', 'teams': {'a': [user1['id'], user2['id'], user3['id']], 'b': [user4['id'], user5['id'], user6['id']]}}), 201)
         self.assertResponse(score(user1['id']), 200)
@@ -171,8 +171,8 @@ class Test03_Finish(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5, user6)
 
     def test_004_finish_disconnect_winning(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         match_id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
         for _ in range(MAX_SCORE - 1):
@@ -187,8 +187,8 @@ class Test03_Finish(UnitTest):
         self.assertThread(user1, user2)
 
     def test_005_finish_disconnect_not_winning(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         match_id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
         for _ in range(MAX_SCORE - 1):
@@ -203,8 +203,8 @@ class Test03_Finish(UnitTest):
         self.assertThread(user1, user2)
 
     def test_005_finish_disconnect_not_score(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         match_id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
         self.assertResponse(finish_match(match_id, 'player-disconnect', user1['id']), 200)
@@ -216,8 +216,8 @@ class Test03_Finish(UnitTest):
         self.assertThread(user1, user2)
 
     def test_006_finish_disconnect_not_score(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         match_id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
         self.assertResponse(finish_match(match_id, 'player-disconnect', user2['id']), 200)

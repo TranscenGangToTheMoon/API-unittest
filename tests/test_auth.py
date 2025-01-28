@@ -5,6 +5,7 @@ from services.play import play
 from services.user import me
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
+from utils.sse_event import du
 
 
 class Test01_Register(UnitTest):
@@ -175,7 +176,7 @@ class Test04_Verify(UnitTest):
         self.assertResponse(verify(''), 401)
 
     def test_004_delete_user(self):
-        user1 = self.user(['delete-user'])
+        user1 = self.user([du])
 
         self.assertResponse(me(user1, 'DELETE', password=True), 204)
         self.assertThread(user1)

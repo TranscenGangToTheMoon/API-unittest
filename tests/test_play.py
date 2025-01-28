@@ -8,14 +8,14 @@ from services.play import play
 from services.stats import set_trophies
 from services.tournament import join_tournament, create_tournament
 from utils.my_unittest import UnitTest
-from utils.sse_event import lj, lup
+from utils.sse_event import lj, lup, gs, ts, tj
 
 
 class Test01_Play(UnitTest):
 
     def test_001_play_duel(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         self.assertResponse(play(user1), 201)
         self.assertResponse(play(user2), 201)
@@ -23,8 +23,8 @@ class Test01_Play(UnitTest):
         self.assertThread(user1, user2)
 
     def test_002_play_ranked(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         self.assertResponse(play(user1, game_mode='ranked'), 201)
         self.assertResponse(play(user2, game_mode='ranked'), 201)
@@ -32,12 +32,12 @@ class Test01_Play(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_play_clash(self):
-        user1 = self.user([lj, lup, 'game-start'])
-        user2 = self.user([lup, 'game-start'])
-        user3 = self.user(['game-start'])
-        user4 = self.user([lj, lj, lup, lup, 'game-start'])
-        user5 = self.user([lj, lup, lup, 'game-start'])
-        user6 = self.user([lup, lup, 'game-start'])
+        user1 = self.user([lj, lup, gs])
+        user2 = self.user([lup, gs])
+        user3 = self.user([gs])
+        user4 = self.user([lj, lj, lup, lup, gs])
+        user5 = self.user([lj, lup, lup, gs])
+        user6 = self.user([lup, lup, gs])
 
         code = self.assertResponse(create_lobby(user1), 201, get_field='code')
         self.assertResponse(join_lobby(user2, code), 201)
@@ -58,12 +58,12 @@ class Test01_Play(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5, user6)
 
     def test_004_play_custom_game(self):
-        user1 = self.user([lj, lj, lj, lj, lj, lup, lup, lup, lup, lup, 'game-start'])
-        user2 = self.user([lj, lj, lj, lj, lup, lup, lup, lup, lup, 'game-start'])
-        user3 = self.user([lj, lj, lj, lup, lup, lup, lup, lup, 'game-start'])
-        user4 = self.user([lj, lj, lup, lup, lup, lup, lup, 'game-start'])
-        user5 = self.user([lj, lup, lup, lup, lup, lup, 'game-start'])
-        user6 = self.user([lup, lup, lup, lup, lup, 'game-start'])
+        user1 = self.user([lj, lj, lj, lj, lj, lup, lup, lup, lup, lup, gs])
+        user2 = self.user([lj, lj, lj, lj, lup, lup, lup, lup, lup, gs])
+        user3 = self.user([lj, lj, lj, lup, lup, lup, lup, lup, gs])
+        user4 = self.user([lj, lj, lup, lup, lup, lup, lup, gs])
+        user5 = self.user([lj, lup, lup, lup, lup, lup, gs])
+        user6 = self.user([lup, lup, lup, lup, lup, gs])
 
         code = self.assertResponse(create_lobby(user1, data={'game_mode': 'custom_game', 'match_type': '3v3'}), 201, get_field='code')
         self.assertResponse(join_lobby(user2, code), 201)
@@ -83,8 +83,8 @@ class Test01_Play(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5, user6)
 
     def test_005_play_duel_guest(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'], guest=True)
+        user1 = self.user([gs])
+        user2 = self.user([gs], guest=True)
 
         self.assertResponse(play(user1), 201)
         self.assertResponse(play(user2), 201)
@@ -95,16 +95,16 @@ class Test01_Play(UnitTest):
 class Test02_PlayError(UnitTest):
 
     def test_001_already_in_game(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         self.assertResponse(create_game(user1, user2), 201)
         self.assertResponse(play(user1), 409, {'detail': 'You are already in a game.'})
         self.assertThread(user1, user2)
 
     def test_002_already_in_tournament(self):
-        user1 = self.user(['tournament-join', 'tournament-join', 'tournament-join', 'tournament-start'])
-        users = [self.user(['tournament-join'] * (2 - i) + ['tournament-start']) for i in range(3)]
+        user1 = self.user([tj, tj, tj, ts])
+        users = [self.user([tj] * (2 - i) + [ts]) for i in range(3)]
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
 
@@ -121,24 +121,24 @@ class Test02_PlayError(UnitTest):
         self.assertThread(user1)
 
     def test_004_user_in_lobby(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         self.assertResponse(play(user2), 201)
 
-        code = self.assertResponse(create_lobby(user1), 201, get_field='code')
+        self.assertResponse(create_lobby(user1), 201, get_field='code')
 
         self.assertResponse(play(user1), 201)
         self.assertResponse(create_lobby(user1, method='GET'), 404, {'detail': 'You do not belong to any lobby.'})
         self.assertThread(user1, user2)
 
     def test_005_user_in_tournament(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
 
         self.assertResponse(play(user2), 201)
 
-        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
+        self.assertResponse(create_tournament(user1), 201, get_field='code')
 
         self.assertResponse(play(user1), 201)
         self.assertResponse(create_tournament(user1, method='GET'), 404, {'detail': 'You do not belong to any tournament.'})
@@ -170,10 +170,10 @@ class Test02_PlayError(UnitTest):
         self.assertResponse(play(user1), 401, {'code': 'sse_connection_required', 'detail': 'You need to be connected to SSE to access this resource.'})
 
     def test_008_ranked_trophies(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
-        user3 = self.user(['game-start'])
-        user4 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
+        user3 = self.user([gs])
+        user4 = self.user([gs])
 
         self.assertResponse(set_trophies(user1, 1000), 201)
         self.assertResponse(set_trophies(user2, 900), 201)
@@ -190,10 +190,10 @@ class Test02_PlayError(UnitTest):
         self.assertThread(user1, user2, user3, user4)
 
     def test_009_ranked_trophies_closer(self):
-        user1 = self.user(['game-start'])
-        user2 = self.user(['game-start'])
-        user3 = self.user(['game-start'])
-        user4 = self.user(['game-start'])
+        user1 = self.user([gs])
+        user2 = self.user([gs])
+        user3 = self.user([gs])
+        user4 = self.user([gs])
 
         self.assertResponse(set_trophies(user1, 1000), 201)
         self.assertResponse(set_trophies(user2, 949), 201)
@@ -210,13 +210,13 @@ class Test02_PlayError(UnitTest):
         self.assertThread(user1, user2, user3, user4)
 
     def test_010_blocked_user(self):
-        user1 = self.user([lj, lup, 'game-start'])
-        user2 = self.user([lup, 'game-start'])
+        user1 = self.user([lj, lup, gs])
+        user2 = self.user([lup, gs])
         user3 = self.user()
-        user4 = self.user([lj, lj, lup, lup, 'game-start'])
-        user5 = self.user([lj, lup, lup, 'game-start'])
-        user6 = self.user([lup, lup, 'game-start'])
-        user7 = self.user(['game-start'])
+        user4 = self.user([lj, lj, lup, lup, gs])
+        user5 = self.user([lj, lup, lup, gs])
+        user6 = self.user([lup, lup, gs])
+        user7 = self.user([gs])
 
         self.assertResponse(blocked_user(user3, user1['id']), 201)
         self.assertResponse(blocked_user(user6, user1['id']), 201)
@@ -252,13 +252,13 @@ class Test02_PlayError(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5, user6, user7)
 
     def test_011_blocked_by_user(self):
-        user1 = self.user([lj, lup, 'game-start'])
-        user2 = self.user([lup, 'game-start'])
+        user1 = self.user([lj, lup, gs])
+        user2 = self.user([lup, gs])
         user3 = self.user()
-        user4 = self.user([lj, lj, lup, lup, 'game-start'])
-        user5 = self.user([lj, lup, lup, 'game-start'])
-        user6 = self.user([lup, lup, 'game-start'])
-        user7 = self.user(['game-start'])
+        user4 = self.user([lj, lj, lup, lup, gs])
+        user5 = self.user([lj, lup, lup, gs])
+        user6 = self.user([lup, lup, gs])
+        user7 = self.user([gs])
 
         self.assertResponse(blocked_user(user1, user3['id']), 201)
         self.assertResponse(blocked_user(user6, user1['id']), 201)

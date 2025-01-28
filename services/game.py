@@ -3,7 +3,7 @@ from typing import Literal
 from utils.request import make_request
 
 
-def create_game(user1=None, user2=None, game_mode: Literal['ranked', 'duel'] = 'duel', data=None, method: Literal['GET', 'POST', 'PATCH', 'DELETE'] = 'POST'):
+def create_game(user1=None, user2=None, game_mode='duel', data=None, method: Literal['GET', 'POST', 'PATCH', 'DELETE'] = 'POST'):
     if data is None:
         data = {'game_mode': game_mode, 'teams': {'a': [user1['id']], 'b': [user2['id']]}}
     return make_request(
