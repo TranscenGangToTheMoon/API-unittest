@@ -58,6 +58,8 @@ class Test02_UserMe(UnitTest):
 
         response = self.assertResponse(me(user1), 200)
         last_online = response['last_online']
+        print(response)
+        print({'id': response['id'], 'username': user1['username'], 'is_guest': False, 'created_at': response['created_at'], 'profile_picture': None, 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
         self.assertDictEqual(response, {'id': response['id'], 'username': user1['username'], 'is_guest': False, 'created_at': response['created_at'], 'profile_picture': None, 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
         self.assertThread(user1)
         time.sleep(5)
@@ -200,9 +202,9 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user2)
 
     def test_012_friend(self):
-        user1 = self.user([afr, afr, du])
-        user2 = self.user([rfr, df])
-        user3 = self.user([rfr, df])
+        user1 = self.user([afr, ppu, afr, du])
+        user2 = self.user([rfr, ppu, df])
+        user3 = self.user([rfr, ppu, df])
 
         id = self.assertFriendResponse(create_friendship(user1, user2))
         self.assertFriendResponse(create_friendship(user1, user3))
@@ -249,15 +251,14 @@ class Test03_DeleteUser(UnitTest):
         self.assertThread(user1, user1_bis)
 
     def test_015_tournament(self):
-        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, du])
+        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, gs, tmf, tf, ppu, du])
         user2 = self.user([tj, tj, ts, gs, tmf, tmf, gs, tmf, tf])
         user3 = self.user([tj, ts, gs, tmf, tmf, tmf, tf])
         user4 = self.user([ts, gs, tmf, tmf, tmf, tf, du])
 
-        self.assertResponse(set_trophies(user1, 1000), 201)
-        self.assertResponse(set_trophies(user2, 500), 201)
-        self.assertResponse(set_trophies(user3, 200), 201)
-        self.assertResponse(set_trophies(user4, 100), 201)
+        self.assertResponse(set_trophies(user1, 10), 201)
+        self.assertResponse(set_trophies(user2, 5), 201)
+        self.assertResponse(set_trophies(user3, 1), 201)
 
         code = self.assertResponse(create_tournament(user1), 201, get_field='code')
         self.assertResponse(join_tournament(user2, code), 201)
@@ -325,8 +326,8 @@ class Test05_RenameUser(UnitTest):
         self.assertThread(user1)
 
     def test_002_rename_user_friend(self):
-        user1 = self.user([afr])
-        user2 = self.user([rfr])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu])
         new_username = user1['username'] + '_new'
 
         id = self.assertFriendResponse(create_friendship(user1, user2))
@@ -373,14 +374,14 @@ class Test05_RenameUser(UnitTest):
 class Test06_download_data(UnitTest):
 
     def test_001_download_data(self):
-        user1 = self.user([afr, rfr, rfr, rfr, gs, gs, gs])
-        user2 = self.user([afr])
-        user3 = self.user([afr])
+        user1 = self.user([afr, ppu, rfr, rfr, rfr, gs, gs, gs])
+        user2 = self.user([afr, ppu])
+        user3 = self.user([afr, ppu])
         user4 = self.user()
         user5 = self.user()
-        user6 = self.user([rfr])
-        user7 = self.user([rfr])
-        user8 = self.user([rfr])
+        user6 = self.user([rfr, ppu])
+        user7 = self.user([rfr, ppu])
+        user8 = self.user([rfr, ppu])
         user9 = self.user()
         user10 = self.user([gs])
         user11 = self.user([gs])
