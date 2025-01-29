@@ -462,8 +462,8 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1)
 
     def test_002_update_pp(self):
-        user1 = self.user([afr, 'profile-picture-unlocked'])
-        user2 = self.user([rfr, 'profile-picture-unlocked'])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu])
 
         id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
         self.assertResponse(friend_request(id, user2), 201)
@@ -471,8 +471,8 @@ class Test07_PictureProfiles(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_unlock_tournament_pp(self):
-        user1 = self.user([afr, 'profile-picture-unlocked'])
-        user2 = self.user([rfr, 'profile-picture-unlocked'])
+        user1 = self.user([afr, ppu])
+        user2 = self.user([rfr, ppu])
 
         id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
         self.assertResponse(friend_request(id, user2), 201)
