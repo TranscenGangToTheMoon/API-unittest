@@ -5,7 +5,7 @@ from services.play import play
 from services.user import me
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
-from utils.sse_event import du
+from utils.sse_event import du, ppu
 
 
 class Test01_Register(UnitTest):
@@ -92,7 +92,7 @@ class Test02_Guest(UnitTest):
         self.assertResponse(create_guest(), 201)
 
     def test_002_register_guest(self):
-        user1 = self.user(guest=True)
+        user1 = self.user([ppu], guest=True)
         username = 'guest-register' + rnstr()
 
         user = self.assertResponse(register_guest(username=username, guest=user1), 200, get_user=True)
@@ -118,7 +118,7 @@ class Test02_Guest(UnitTest):
         self.assertThread(user1)
 
     def test_006_register_guest_try_play_ranked(self):
-        user1 = self.user(guest=True)
+        user1 = self.user([ppu], guest=True)
 
         self.assertResponse(play(user1, 'ranked'), 403, {'detail': 'Guest users cannot perform this action.'})
         user = self.assertResponse(register_guest(guest=user1), 200, get_user=True)
