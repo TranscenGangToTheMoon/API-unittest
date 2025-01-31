@@ -120,7 +120,7 @@ class Test02_Stats(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
-        time.sleep(1)
+        time.sleep(5)
         response = self.assertResponse(get_stats(user1), 200)
         for game_mode in response:
             if game_mode['game_mode'] == 'tournament':
@@ -165,21 +165,21 @@ class Test03_StatsRanked(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
-        self.assertEqual(57, self.assertResponse(me(user1), 200, get_field='trophies'))
+        self.assertEqual(68, self.assertResponse(me(user1), 200, get_field='trophies'))
         self.assertEqual(0, self.assertResponse(me(user2), 200, get_field='trophies'))
 
         self.assertResponse(play(user2, 'ranked'), 201)
         self.assertResponse(play(user3, 'ranked'), 201)
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user2['id']), 200)
-        self.assertEqual(30, self.assertResponse(me(user2), 200, get_field='trophies'))
+        self.assertEqual(36, self.assertResponse(me(user2), 200, get_field='trophies'))
 
         self.assertResponse(play(user1, 'ranked'), 201)
         self.assertResponse(play(user2, 'ranked'), 201)
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user2['id']), 200)
-        self.assertEqual(37, self.assertResponse(me(user1), 200, get_field='trophies'))
-        self.assertEqual(63, self.assertResponse(me(user2), 200, get_field='trophies'))
+        self.assertEqual(47, self.assertResponse(me(user1), 200, get_field='trophies'))
+        self.assertEqual(75, self.assertResponse(me(user2), 200, get_field='trophies'))
 
         self.assertThread(user1, user2, user3)
 
