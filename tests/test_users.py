@@ -496,10 +496,10 @@ class Test07_PictureProfiles(UnitTest):
     def test_005_unlock_clash_pp(self):
         def set_ready():
             for u in (user1, user2, user3):
-                self.assertResponse(join_lobby(u, code1, data={'is_ready': True}), 200, get_field='is_ready')
+                self.assertResponse(join_lobby(u, code1, data={'is_ready': True}), 200)
 
             for u in (user4, user5, user6):
-                self.assertResponse(join_lobby(u, code2, data={'is_ready': True}), 200, get_field='is_ready')
+                self.assertResponse(join_lobby(u, code2, data={'is_ready': True}), 200)
 
         scorer = int(100 / MAX_SCORE - 10)
         game = [lup, lup, gs]
@@ -568,9 +568,9 @@ class Test07_PictureProfiles(UnitTest):
         self.assertResponse(join_lobby(user5, code2), 201)
         self.assertResponse(join_lobby(user6, code2), 201)
         for u in (user1, user2, user3):
-            self.assertResponse(join_lobby(u, code1, data={'is_ready': True}), 200, get_field='is_ready')
+            self.assertResponse(join_lobby(u, code1, data={'is_ready': True}), 200)
         for u in (user4, user5, user6):
-            self.assertResponse(join_lobby(u, code2, data={'is_ready': True}), 200, get_field='is_ready')
+            self.assertResponse(join_lobby(u, code2, data={'is_ready': True}), 200)
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 

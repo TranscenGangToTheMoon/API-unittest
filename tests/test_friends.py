@@ -4,9 +4,13 @@ import unittest
 from services.blocked import blocked_user
 from services.friend import create_friendship, friend_request, friend_requests, get_friend_requests_received, \
     get_friends, friend
+from services.game import score
+from services.lobby import create_lobby, join_lobby
+from services.play import play
 from services.user import me
+from utils.config import MAX_SCORE
 from utils.my_unittest import UnitTest
-from utils.sse_event import ppu, afr, rfr, df, cfr, du, rejfr
+from utils.sse_event import ppu, afr, rfr, df, cfr, du, rejfr, gs, lj, lup
 
 
 class Test01_Friend(UnitTest):
@@ -338,6 +342,115 @@ class Test02_FriendRequest(UnitTest):
         self.assertEqual(1, self.assertResponse(me(user1), 200, get_field='notifications')['friend_requests'])
         self.assertResponse(friend_request(friend_request_id, user2, method='DELETE'), 204)
         self.assertThread(user1, user2)
+
+
+class Test03_FriendStat(UnitTest):
+
+    def test_001_play_against_duel(self):
+        user1 = self.user([afr, ppu, gs])
+        user2 = self.user([rfr, ppu, gs])
+
+        self.assertFriendResponse(create_friendship(user1, user2))
+        self.assertResponse(play(user1), 201)
+        self.assertResponse(play(user2), 201)
+
+        self.assertResponse(score(user2['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        response = self.assertResponse(get_friends(user1), 200, count=1)
+        self.assertEqual(response['results'][0]['matches_played_against'], 1)
+        self.assertEqual(response['results'][0]['me_wins'], 1)
+        response = self.assertResponse(get_friends(user2), 200, count=1)
+        self.assertEqual(response['results'][0]['matches_played_against'], 1)
+        self.assertEqual(response['results'][0]['me_wins'], 0)
+        self.assertThread(user1, user2)
+
+    def test_002_play_against_lobby(self):
+        user1 = self.user([afr, ppu, lj, lj, lup, lup, gs])
+        user2 = self.user([lj, lup, lup, gs])
+        user3 = self.user([lup, lup, gs])
+        user4 = self.user([rfr, ppu, gs])
+        user5 = self.user([lj, lup, gs])
+        user6 = self.user([lup, gs])
+
+        self.assertFriendResponse(create_friendship(user1, user4))
+
+        code = self.assertResponse(create_lobby(user1), 201, get_field='code')
+        self.assertResponse(join_lobby(user2, code), 201)
+        self.assertResponse(join_lobby(user3, code), 201)
+        self.assertResponse(join_lobby(user1, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user2, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user3, code, data={'is_ready': True}), 200)
+
+        code = self.assertResponse(create_lobby(user4), 201, get_field='code')
+        self.assertResponse(join_lobby(user4, code, data={'is_ready': True}), 200)
+
+        code = self.assertResponse(create_lobby(user5), 201, get_field='code')
+        self.assertResponse(join_lobby(user6, code), 201)
+        self.assertResponse(join_lobby(user5, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user6, code, data={'is_ready': True}), 200)
+
+        self.assertResponse(score(user4['id']), 200)
+        self.assertResponse(score(user6['id']), 200)
+        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user1['id']), 200)
+
+        response = self.assertResponse(get_friends(user1), 200, count=1)
+        self.assertEqual(response['results'][0]['matches_played_against'], 1)
+        self.assertEqual(response['results'][0]['me_wins'], 1)
+        response = self.assertResponse(get_friends(user4), 200, count=1)
+        self.assertEqual(response['results'][0]['matches_played_against'], 1)
+        self.assertEqual(response['results'][0]['me_wins'], 0)
+        self.assertThread(user1, user2, user3, user4, user5, user6)
+
+    def test_003_play_together(self):
+        user1 = self.user([afr, ppu, lj, lj, lup, lup, gs])
+        user2 = self.user([rfr, ppu, lj, lup, lup, gs])
+        user3 = self.user([lup, lup, gs])
+        user4 = self.user([gs])
+        user5 = self.user([afr, ppu, lj, lup, gs])
+        user6 = self.user([rfr, ppu, lup, gs])
+
+        self.assertFriendResponse(create_friendship(user1, user2))
+        self.assertFriendResponse(create_friendship(user5, user6))
+
+        code = self.assertResponse(create_lobby(user1), 201, get_field='code')
+        self.assertResponse(join_lobby(user2, code), 201)
+        self.assertResponse(join_lobby(user3, code), 201)
+        self.assertResponse(join_lobby(user1, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user2, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user3, code, data={'is_ready': True}), 200)
+
+        code = self.assertResponse(create_lobby(user4), 201, get_field='code')
+        self.assertResponse(join_lobby(user4, code, data={'is_ready': True}), 200)
+
+        code = self.assertResponse(create_lobby(user5), 201, get_field='code')
+        self.assertResponse(join_lobby(user6, code), 201)
+        self.assertResponse(join_lobby(user5, code, data={'is_ready': True}), 200)
+        self.assertResponse(join_lobby(user6, code, data={'is_ready': True}), 200)
+
+        self.assertResponse(score(user4['id']), 200)
+        self.assertResponse(score(user6['id']), 200)
+        self.assertResponse(score(user3['id']), 200)
+        for _ in range(MAX_SCORE - 1):
+            self.assertResponse(score(user1['id']), 200)
+
+        response = self.assertResponse(get_friends(user1), 200, count=1)
+        self.assertEqual(response['results'][0]['matches_played_together'], 1)
+        self.assertEqual(response['results'][0]['matches_won_together'], 1)
+        response = self.assertResponse(get_friends(user2), 200, count=1)
+        self.assertEqual(response['results'][0]['matches_played_together'], 1)
+        self.assertEqual(response['results'][0]['matches_won_together'], 1)
+
+        response = self.assertResponse(get_friends(user5), 200, count=1)
+        self.assertEqual(response['results'][0]['matches_played_together'], 1)
+        self.assertEqual(response['results'][0]['matches_won_together'], 0)
+        response = self.assertResponse(get_friends(user6), 200, count=1)
+        self.assertEqual(response['results'][0]['matches_played_together'], 1)
+        self.assertEqual(response['results'][0]['matches_won_together'], 0)
+        self.assertThread(user1, user2, user3, user4, user5, user6)
 
 
 if __name__ == '__main__':
