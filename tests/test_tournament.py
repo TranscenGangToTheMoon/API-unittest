@@ -673,6 +673,7 @@ class Test10_FinishTournament(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
+        time.sleep(5)
         self.assertThread(user1, user2, user3, user4)
 
     def test_002_finish_8_seeding(self):
@@ -747,6 +748,7 @@ class Test10_FinishTournament(UnitTest):
         for _ in range(MAX_SCORE - 1):
             self.assertResponse(score(user3['id']), 200)
 
+        time.sleep(5)
         self.assertThread(user1, user2, user3, user4, user5, user6, user7, user8)
 
     def test_003_finish_16_seeding(self):
@@ -907,6 +909,7 @@ class Test10_FinishTournament(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
+        time.sleep(5)
         self.assertThread(user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12, user13, user14, user15, user16)
 
     def test_003_finish_7_seeding(self):
@@ -975,6 +978,7 @@ class Test10_FinishTournament(UnitTest):
         for _ in range(MAX_SCORE - 1):
             self.assertResponse(score(user3['id']), 200)
 
+        time.sleep(5)
         tournament_id = self.assertResponse(get_games(user3), 200)['results'][0]['tournament_id']
         response = self.assertResponse(get_tournament(tournament_id, user3), 200)
         self.assertEqual(4, len(response['matches']['quarter-final']))
