@@ -9,7 +9,8 @@ from services.sse import events
 from services.user import me
 from utils.generate_random import rnstr
 from utils.my_unittest import UnitTest
-from utils.sse_event import rfr, gs, rm, lj, cfr, du, afr, i1, i3, ic, ll, lm, it, tj, tl, tm, ts, tsa, tmf, tf, lup
+from utils.sse_event import rfr, gs, rm, lj, cfr, du, afr, i1, i3, ic, ll, lm, it, tj, tl, tm, ts, tsa, tmf, tf, lup, \
+    ppu
 
 
 class Test01_SSE(UnitTest):
@@ -44,7 +45,7 @@ class Test01_SSE(UnitTest):
         thread1.join()
 
     def test_005_guest_then_register(self):
-        user1 = self.user(guest=True)
+        user1 = self.user([ppu], guest=True)
         username = 'sse-register-' + rnstr()
 
         self.assertResponse(register_guest(user1, username=username), 200)
