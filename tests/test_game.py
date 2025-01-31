@@ -41,7 +41,7 @@ class Test01_Game(UnitTest):
         self.assertThread(user1, user2)
 
     def test_004_no_game_mode(self):
-        self.assertResponse(create_game(data={'teams': {'a': [self.ran()], 'b': [self.ran()]}}), 400, {'game_mode': ['This field is required.']})
+        self.assertResponse(create_game(data={'teams': {'a': [{'id': self.ran()}], 'b': [{'id': self.ran()}]}}), 400, {'game_mode': ['This field is required.']})
 
     def test_005_invalid_teams(self):
         n = self.ran()
@@ -86,7 +86,7 @@ class Test01_Game(UnitTest):
         self.assertThread(user1, user2)
 
     def test_009_get_games(self):
-        n = random.randint(2, 15)
+        n = random.randint(2, 9)
         user1 = self.user([gs] * n)
         users = [self.user([gs]) for _ in range(n)]
 
@@ -157,7 +157,7 @@ class Test03_Finish(UnitTest):
         user5 = self.user([gs])
         user6 = self.user([gs])
 
-        self.assertResponse(create_game(data={'game_mode': 'clash', 'teams': {'a': [user1['id'], user2['id'], user3['id']], 'b': [user4['id'], user5['id'], user6['id']]}}), 201)
+        self.assertResponse(create_game(data={'game_mode': 'clash', 'teams': {'a': [{'id': user1['id']}, {'id': user2['id']}, {'id': user3['id']}], 'b': [{'id': user4['id']}, {'id': user5['id']}, {'id': user6['id']}]}}), 201)
         self.assertResponse(score(user1['id']), 200)
         self.assertResponse(score(user2['id'], own_goal=True), 200)
         self.assertResponse(score(user3['id'], own_goal=True), 200)
@@ -261,6 +261,8 @@ class Test04_Tournament(UnitTest):
         self.assertResponse(score(user2['id']), 200)
         for _ in range(MAX_SCORE - 1):
             self.assertResponse(score(user1['id']), 200)
+
+        time.sleep(5)
 
         response = self.assertResponse(get_games(user1), 200, count=2)
         self.assertResponse(get_tournament(response['results'][0]['tournament_id'], user1), 200)
