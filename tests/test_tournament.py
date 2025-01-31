@@ -987,7 +987,7 @@ class Test10_FinishTournament(UnitTest):
 
 class Test11_Message(UnitTest):
 
-    def test_001_test(self):
+    def test_001_messages(self):
         user1 = self.user([tj, tj, tm, tl])
         user2 = self.user([tj, tm, tl, tm])
         user3 = self.user([])
@@ -1023,6 +1023,39 @@ class Test11_Message(UnitTest):
         self.assertResponse(post_message(user1, code, data={'content': ['caca', 'pipi']}), 400)
         self.assertResponse(post_message(user1, code, data={'content': {'prout': 48}}), 400)
         self.assertThread(user1)
+
+    def test_005_messages_after_start(self):
+        user1 = self.user([tj, tj, tj, ts, gs, tmf, tmf, tm, gs, tmf, tf, ppu])
+        user2 = self.user([tj, tj, ts, gs, tmf, tmf, tm, tm, gs, tmf, tf])
+        user3 = self.user([tj, ts, gs, tmf, tmf, tm, tmf, tf])
+        user4 = self.user([ts, gs, tmf, tmf, tm, tmf, tf])
+
+        self.assertResponse(set_trophies(user1, 3), 201)
+        self.assertResponse(set_trophies(user2, 2), 201)
+        self.assertResponse(set_trophies(user3, 1), 201)
+
+        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
+        self.assertResponse(join_tournament(user2, code), 201)
+        self.assertResponse(join_tournament(user3, code), 201)
+        self.assertResponse(join_tournament(user4, code), 201)
+
+        time.sleep(5)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user2['id']), 200)
+
+        self.assertResponse(post_message(user1, code, data={'content': 'sadf'}), 201) # todo fix empty message
+        self.assertResponse(join_tournament(user4, code, method='DELETE'), 204)
+        self.assertResponse(post_message(user3, code, data={'content': 'ewfewf'}), 201)
+        self.assertResponse(post_message(user4, code, data={'content': 'asfd8'}), 403)
+
+        time.sleep(5)
+        for _ in range(MAX_SCORE):
+            self.assertResponse(score(user1['id']), 200)
+
+        time.sleep(5)
+        self.assertThread(user1, user2, user3, user4)
 
 
 class Test12_BlockedTournament(UnitTest):
