@@ -116,25 +116,7 @@ class Test02_EventsEndpoint(UnitTest):
         self.assertResponse(events({'id': user1['id']}, event_code='ping'), 404)
 
     def test_005_missing_data_kwargs(self):
-        events_code = [
-            rm,
-            afr,
-            rfr,
-            i1,
-            i3,
-            ic,
-            it,
-            lj,
-            ll,
-            lm,
-            tj,
-            tl,
-            tm,
-            ts,
-            tsa,
-            tmf,
-            tf,
-        ]
+        events_code = [rm, afr, rfr, i1, i3, ic, it, lj, ll, lm, tj, tl, tm, ts, tsa, tmf, tf]
         user1 = self.user(connect_game=False)
 
         for e in events_code:
