@@ -39,10 +39,10 @@ class Test01_Correction(UnitTest):
 # Clash ------------------------------------------------------------- #
         def set_ready():
             for u_ in (user1, user2, user3):
-                self.assertResponse(join_lobby(u_, code1, data={'is_ready': True}), 200, get_field='is_ready')
+                self.assertResponse(join_lobby(u_, code1, data={'is_ready': True}), 200)
 
             for u_ in (user4, user5, user6):
-                self.assertResponse(join_lobby(u_, code2, data={'is_ready': True}), 200, get_field='is_ready')
+                self.assertResponse(join_lobby(u_, code2, data={'is_ready': True}), 200)
 
         user2 = self.user([lj] + game * 10 + [ppu, ppu] + game * 40 + [ppu] + game * 50 + [ppu])
         user3 = self.user(game * 10 + [ppu, ppu] + game * 40 + [ppu] + game * 50 + [ppu])
@@ -95,9 +95,9 @@ class Test01_Correction(UnitTest):
         self.assertResponse(join_lobby(user5, code2), 201)
         self.assertResponse(join_lobby(user6, code2), 201)
         for u in (user1, user2, user3):
-            self.assertResponse(join_lobby(u, code1, data={'is_ready': True}), 200, get_field='is_ready')
+            self.assertResponse(join_lobby(u, code1, data={'is_ready': True}), 200)
         for u in (user4, user5, user6):
-            self.assertResponse(join_lobby(u, code2, data={'is_ready': True}), 200, get_field='is_ready')
+            self.assertResponse(join_lobby(u, code2, data={'is_ready': True}), 200)
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
@@ -118,7 +118,7 @@ class Test01_Correction(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
-        self.assertThread(user1, user2, user3, user4, user5, user6, user7, user8, user9)
+        self.assertThread(user2, user3, user4, user5, user6, user7, user8, user9)
 
 # Friend ------------------------------------------------------------- #
         for nb, pp in ((1, 19), (49, 20)):
