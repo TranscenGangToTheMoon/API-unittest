@@ -99,7 +99,7 @@ class Test02_PlayError(UnitTest):
         user2 = self.user([gs])
 
         self.assertResponse(create_game(user1, user2), 201)
-        self.assertResponse(play(user1), 409, {'detail': 'You are already in a game.'})
+        self.assertResponse(play(user1), 409, {'detail': 'You are already in a game or a tournament.'})
         self.assertThread(user1, user2)
 
     def test_002_already_in_tournament(self):
@@ -111,7 +111,7 @@ class Test02_PlayError(UnitTest):
         for user_tmp in users:
             self.assertResponse(join_tournament(user_tmp, code), 201)
 
-        self.assertResponse(play(user1), 409, {'detail': 'You are already in a tournament.'})
+        self.assertResponse(play(user1), 409, {'detail': 'You are already in a game or a tournament.'})
         self.assertThread(user1, *users)
 
     def test_003_guest_cannot_play_ranked(self):
