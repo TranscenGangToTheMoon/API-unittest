@@ -15,7 +15,7 @@ from utils.sse_event import du, gs
 
 class UnitTest(unittest.TestCase):
 
-    def user(self, tests_sse: list[str] = None, username=None, password=None, guest=False, sse=True, connect_game=True):
+    def user(self, tests_sse: list[str] | bool = None, username=None, password=None, guest=False, sse=True, connect_game=True):
         _new_user = {}
 
         if guest:
@@ -62,7 +62,7 @@ class UnitTest(unittest.TestCase):
         self.assertEqual(responses[0].json['id'], responses[1].json['id'])
         return responses[1].json['id']
 
-    def connect_to_sse(self, user, tests: list[str] = None, status_code=200, connect_game=True):
+    def connect_to_sse(self, user, tests: list[str] | bool = None, status_code=200, connect_game=True):
         user['thread'] = Thread(target=self._thread_connect_to_sse, args=(user, tests, status_code, connect_game))
         user['thread'].start()
         time.sleep(0.5)
@@ -113,7 +113,8 @@ class UnitTest(unittest.TestCase):
             user['thread'].join()
             if user['thread_tests'] is None:
                 user['thread_tests'] = []
-            print('TEST', user['id'], user['username'], flush=True)
-            print('expected', user['thread_tests'], flush=True)
-            print('got     ', user['thread_assertion'], flush=True)
-            self.assertListEqual(user['thread_tests'], user['thread_assertion'])
+            if user['thread_tests'] is not False:
+                print('TEST', user['id'], user['username'], flush=True)
+                print('expected', user['thread_tests'], flush=True)
+                print('got     ', user['thread_assertion'], flush=True)
+                self.assertListEqual(user['thread_tests'], user['thread_assertion'])
