@@ -376,6 +376,19 @@ class Test04_Messages(UnitTest):
 
         self.assertThread(user1, user2)
 
+    def test_012_send_message_is_read(self):
+        user1 = self.user()
+        user2 = self.user()
+
+        self.assertResponse(accept_chat(user2), 200)
+        chat_id = self.assertResponse(create_chat(user1, user2['username']), 201, get_field=True)
+        self.assertResponse(create_message(user1, chat_id, data={'content': 'coucou', 'is_read': True}), 201)
+        messages = self.assertResponse(create_message(user1, chat_id, method='GET'), 200, get_field='results')
+        self.assertTrue(messages[0]['is_read'])
+        messages = self.assertResponse(create_message(user2, chat_id, method='GET'), 200, get_field='results')
+        self.assertTrue(messages[0]['is_read'])
+        self.assertThread(user1, user2)
+
 
 if __name__ == '__main__':
     unittest.main()
