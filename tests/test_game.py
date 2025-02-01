@@ -109,12 +109,12 @@ class Test02_Score(UnitTest):
         user2 = self.user([gs])
         score_2 = random.randint(0, MAX_SCORE - 1)
 
-        self.assertResponse(create_game(user1, user2), 201)
+        game_id = self.assertResponse(create_game(user1, user2), 201, get_field=True)
         for _ in range(score_1):
             self.assertResponse(score(user1['id']), 200)
         for _ in range(score_2):
             self.assertResponse(score(user2['id']), 200)
-        response = self.assertResponse(is_in_game(user1), 200)
+        response = self.assertResponse(is_in_game(user1, game_id), 200)
         self.assertEqual(score_1, response['teams']['a']['players'][0]['score'])
         self.assertEqual(score_2, response['teams']['b']['players'][0]['score'])
         self.assertThread(user1, user2)
