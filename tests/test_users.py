@@ -58,7 +58,7 @@ class Test02_UserMe(UnitTest):
 
         response = self.assertResponse(me(user1), 200)
         last_online = response['last_online']
-        self.assertDictEqual(response, {'id': response['id'], 'username': user1['username'], 'is_guest': False, 'profile_picture': {'id': 0, 'name': 'Default', 'small': '/assets/profile_pictures/default_small.png', 'medium': '/assets/profile_pictures/default_medium.png'}, 'created_at': response['created_at'], 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
+        self.assertDictEqual(response, {'id': response['id'], 'username': user1['username'], 'is_guest': False, 'profile_picture': {'id': 1, 'name': 'Register', 'small': '/assets/profile_pictures/register_small.png', 'medium': '/assets/profile_pictures/register_medium.png'}, 'created_at': response['created_at'], 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
         self.assertThread(user1)
         time.sleep(5)
         self.assertNotEqual(last_online, self.assertResponse(me(user1), 200)['last_online'])
@@ -67,7 +67,7 @@ class Test02_UserMe(UnitTest):
         user1 = self.user(guest=True)
 
         response = self.assertResponse(me(user1), 200)
-        self.assertDictEqual(response, {'id': response['id'], 'username': response['username'], 'is_guest': True, 'profile_picture': {'id': 0, 'name': 'Default', 'small': '/assets/profile_pictures/default_small.png', 'medium': '/assets/profile_pictures/default_medium.png'}, 'created_at': response['created_at'], 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
+        self.assertDictEqual(response, {'id': response['id'], 'username': response['username'], 'is_guest': True, 'profile_picture': {'id': 0, 'name': 'Guest', 'small': '/assets/profile_pictures/guest_small.png', 'medium': '/assets/profile_pictures/guest_medium.png'}, 'created_at': response['created_at'], 'accept_friend_request': True, 'accept_chat_from': 'friends_only', 'trophies': 0, 'notifications': {'friend_requests': 0, 'chats': 0}, 'is_online': True, 'last_online': response['last_online']})
         self.assertThread(user1)
 
 
@@ -145,6 +145,7 @@ class Test03_DeleteUser(UnitTest):
         time.sleep(5)
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user4['id']), 200)
+        time.sleep(5)
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user2['id']), 200)
@@ -276,6 +277,7 @@ class Test03_DeleteUser(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
+        time.sleep(5)
         self.assertResponse(me(user1, method='DELETE', password=True), 204)
         self.assertResponse(me(user4, method='DELETE', password=True), 204)
         tournament_id = self.assertResponse(get_games(user2), 200, count=2)['results'][0]['tournament_id']
@@ -368,6 +370,22 @@ class Test05_RenameUser(UnitTest):
         self.assertResponse(me(user1), 200)
         self.assertThread(user1)
 
+    def test_006_rename_too_long(self):
+        user1 = self.user()
+        new_username = 'username_toooooooooooooooo_long' + rnstr()
+
+        self.assertResponse(me(user1, method='PATCH', data={'username': new_username}), 400)
+        self.assertResponse(me(user1), 200)
+        self.assertThread(user1)
+
+    def test_007_rename_already(self):
+        user1 = self.user()
+        new_username = user1['username']
+
+        self.assertResponse(me(user1, method='PATCH', data={'username': new_username}), 400)
+        self.assertResponse(me(user1), 200)
+        self.assertThread(user1)
+
 
 class Test06_download_data(UnitTest):
 
@@ -457,7 +475,7 @@ class Test07_PictureProfiles(UnitTest):
         user1 = self.user()
 
         response = self.assertResponse(me(user1), 200)
-        self.assertEqual({'id': 0, 'name': 'Default', 'small': '/assets/profile_pictures/default_small.png', 'medium': '/assets/profile_pictures/default_medium.png'}, response['profile_picture'])
+        self.assertEqual({'id': 1, 'name': 'Register', 'small': '/assets/profile_pictures/register_small.png', 'medium': '/assets/profile_pictures/register_medium.png'}, response['profile_picture'])
         self.assertResponse(get_profile_pictures(user1), 200)
         self.assertThread(user1)
 
@@ -467,7 +485,7 @@ class Test07_PictureProfiles(UnitTest):
 
         id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
         self.assertResponse(friend_request(id, user2), 201)
-        self.assertResponse(set_profile_pictures(user1, 19), 200)
+        self.assertResponse(set_profile_pictures(user1, 20), 200)
         self.assertThread(user1, user2)
 
     def test_003_unlock_tournament_pp(self):
@@ -476,15 +494,15 @@ class Test07_PictureProfiles(UnitTest):
 
         id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
         self.assertResponse(friend_request(id, user2), 201)
-        self.assertResponse(set_profile_pictures(user1, 19), 200)
+        self.assertResponse(set_profile_pictures(user1, 20), 200)
         self.assertThread(user1, user2)
 
     def test_004_unlock_duel_pp(self):
-        scorer = int(100 / MAX_SCORE - 10)
+        scorer = int(100 / MAX_SCORE - 10) - 1
         user1 = self.user([gs] * 10 + [ppu, ppu] + [gs] * scorer + [ppu] + [gs] * (40 - scorer) + [ppu] + [gs] * 50 + [ppu])
         user2 = self.user([gs] * 100)
 
-        for game, pp in ((10, 7), (40, 8), (50, 9)):
+        for game, pp in ((10, 8), (40, 9), (50, 10)):
             for _ in range(game):
                 self.assertResponse(play(user1), 201)
                 self.assertResponse(play(user2), 201)
@@ -501,7 +519,7 @@ class Test07_PictureProfiles(UnitTest):
             for u in (user4, user5, user6):
                 self.assertResponse(join_lobby(u, code2, data={'is_ready': True}), 200)
 
-        scorer = int(100 / MAX_SCORE - 10)
+        scorer = int(100 / MAX_SCORE - 10) - 1
         game = [lup, lup, gs]
         user1 = self.user([lj, lj] + game * 10 + [ppu, ppu] + game * scorer + [ppu] + game * (40 - scorer) + [ppu] + game * 50 + [ppu])
         user2 = self.user([lj] + game * 10 + [ppu, ppu] + game * 40 + [ppu] + game * 50 + [ppu])
@@ -518,7 +536,7 @@ class Test07_PictureProfiles(UnitTest):
         self.assertResponse(join_lobby(user5, code2), 201)
         self.assertResponse(join_lobby(user6, code2), 201)
 
-        for game, pp in ((10, 4), (40, 5), (50, 6)):
+        for game, pp in ((10, 5), (40, 6), (50, 7)):
             for _ in range(game):
                 set_ready()
                 for _ in range(MAX_SCORE):
@@ -531,7 +549,7 @@ class Test07_PictureProfiles(UnitTest):
     def test_006_unlock_ranked_pp(self):
         user1 = self.user([ppu, ppu, ppu, ppu, ppu, ppu])
 
-        for trophies, pp in ((100, 10), (400, 11), (500, 12), (1000, 13), (1000, 14), (2000, 15)):
+        for trophies, pp in ((100, 11), (400, 12), (500, 13), (1000, 14), (1000, 15), (2000, 16)):
             self.assertResponse(set_trophies(user1, trophies), 201)
             self.assertResponse(set_profile_pictures(user1, pp), 200)
 
@@ -591,7 +609,7 @@ class Test07_PictureProfiles(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user1['id']), 200)
 
-        self.assertResponse(set_profile_pictures(user1, 16), 200)
+        self.assertResponse(set_profile_pictures(user1, 17), 200)
         self.assertThread(user1, user2, user3, user4, user5, user6, user7, user8, user9)
 
     def test_008_unlock_scorer_pp(self):
@@ -604,13 +622,13 @@ class Test07_PictureProfiles(UnitTest):
             self.assertResponse(play(user2), 201)
             for _ in range(MAX_SCORE):
                 self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(set_profile_pictures(user1, 17), 200)
+        self.assertResponse(set_profile_pictures(user1, 18), 200)
         self.assertThread(user1, user2)
 
     def test_009_unlock_friend_pp(self):
         user1 = self.user([afr, ppu] + [afr] * 49 + [ppu])
 
-        for nb, pp in ((1, 19), (49, 20)):
+        for nb, pp in ((1, 20), (49, 21)):
             for _ in range(nb):
                 user2 = self.user([rfr, ppu])
                 id = self.assertResponse(friend_requests(user1, user2), 201, get_field=True)
@@ -628,14 +646,14 @@ class Test07_PictureProfiles(UnitTest):
             self.assertResponse(play(user2), 201)
             for _ in range(MAX_SCORE):
                 self.assertResponse(score(user1['id']), 200)
-        self.assertResponse(set_profile_pictures(user1, 21), 200)
+        self.assertResponse(set_profile_pictures(user1, 22), 200)
         self.assertThread(user1, user2)
 
     def test_011_invalid_select(self):
         user1 = self.user()
 
         self.assertResponse(set_profile_pictures(user1, 132456), 404)
-        self.assertResponse(set_profile_pictures(user1, 2), 403)
+        self.assertResponse(set_profile_pictures(user1, 3), 403)
         self.assertThread(user1)
 
 
