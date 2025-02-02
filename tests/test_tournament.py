@@ -63,7 +63,20 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 409, {'detail': 'You already joined this tournament.'})
         self.assertThread(user1, user2)
 
-    def test_003_already_started(self):
+    def test_003_already_started_not_full(self):
+        user1 = self.user([tj] * 6 + [ts, gs])
+        user2 = self.user()
+        users = [self.user([tj] * (2 - i) + [ts, gs]) for i in range(6)]
+
+        code = self.assertResponse(create_tournament(user1, size=8), 201, get_field='code')
+
+        for user_tmp in users:
+            self.assertResponse(join_tournament(user_tmp, code), 201)
+        time.sleep(30)
+        self.assertResponse(join_tournament(user2, code), 403, {'detail': 'Tournament already started.'})
+        self.assertThread(user1, user2, *users)
+
+    def test_004_already_started(self):
         user1 = self.user([tj] * 3 + [ts, gs])
         user2 = self.user()
         users = [self.user([tj] * (2 - i) + [ts, gs]) for i in range(3)]
@@ -76,32 +89,19 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 403, {'detail': 'Tournament already started.'})
         self.assertThread(user1, user2, *users)
 
-    def test_004_is_full(self):
-        user1 = self.user([tj] * 3 + [ts, gs])
-        user2 = self.user()
-        users = [self.user([tj] * (2 - i) + [ts, gs]) for i in range(3)]
-
-        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
-
-        for user_tmp in users:
-            self.assertResponse(join_tournament(user_tmp, code), 201)
-        time.sleep(5)
-        self.assertResponse(join_tournament(user2, code), 403, {'detail': 'Tournament is full.'})
-        self.assertThread(user1, user2, *users)
-
     def test_005_guest_create_tournament(self):
         user1 = self.user(guest=True)
 
         self.assertResponse(create_tournament(user1), 403, {'detail': 'Guest users cannot perform this action.'})
         self.assertThread(user1)
 
-    def test_005_no_name(self):
+    def test_006_no_name(self):
         user1 = self.user()
 
         self.assertResponse(create_tournament(user1, data={}), 400, {'name': ['This field is required.']})
         self.assertThread(user1)
 
-    def test_006_blocked_user_cannot_join(self):
+    def test_007_blocked_user_cannot_join(self):
         user1 = self.user()
         user2 = self.user()
 
@@ -111,7 +111,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 404, {'detail': 'Tournament not found.'})
         self.assertThread(user1, user2)
 
-    def test_007_blocked_user(self):
+    def test_008_blocked_user(self):
         user1 = self.user([tj, tl])
         user2 = self.user(['tournament-banned'])
 
@@ -126,7 +126,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(create_tournament(user2, method='GET'), 404, {'detail': 'You do not belong to any tournament.'})
         self.assertThread(user1, user2)
 
-    def test_008_blocked_user_not_creator(self):
+    def test_009_blocked_user_not_creator(self):
         user1 = self.user([tj, tj])
         user2 = self.user([tj])
         user3 = self.user()
@@ -141,7 +141,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertEqual(3, len(response))
         self.assertThread(user1, user2, user3)
 
-    def test_009_blocked_then_unblock(self):
+    def test_010_blocked_then_unblock(self):
         user1 = self.user([tj, tl, tj])
         user2 = self.user(['tournament-banned'])
 
@@ -158,14 +158,14 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 201)
         self.assertThread(user1, user2)
 
-    def test_010_create_two_tournament(self):
+    def test_011_create_two_tournament(self):
         user1 = self.user()
 
         self.assertResponse(create_tournament(user1), 201)
         self.assertResponse(create_tournament(user1), 403, {'detail': 'You cannot create more than one tournament at the same time.'})
         self.assertThread(user1)
 
-    def test_011_create_two_tournament_leave_first(self):
+    def test_012_create_two_tournament_leave_first(self):
         user1 = self.user([tj])
         user2 = self.user([tl])
 
@@ -178,7 +178,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(create_tournament(user1), 201)
         self.assertThread(user1, user2)
 
-    def test_012_join_tournament_without_sse(self):
+    def test_013_join_tournament_without_sse(self):
         user1 = self.user(sse=False)
         user2 = self.user()
 
@@ -187,7 +187,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user1, code), 401, {'code': 'sse_connection_required', 'detail': 'You need to be connected to SSE to access this resource.'})
         self.assertThread(user2)
 
-    def test_013_wrong_size(self):
+    def test_014_wrong_size(self):
         user1 = self.user()
 
         self.assertResponse(create_tournament(user1, size=14), 400)
@@ -195,7 +195,7 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(create_tournament(user1, size=7), 400)
         self.assertThread(user1)
 
-    def test_014_user_blocked_creator(self):
+    def test_015_user_blocked_creator(self):
         user1 = self.user([tj, tj, tl])
         user2 = self.user([tj, tl])
         user3 = self.user(['tournament-banned'])
