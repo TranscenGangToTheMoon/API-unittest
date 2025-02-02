@@ -76,7 +76,20 @@ class Test02_ErrorTournament(UnitTest):
         self.assertResponse(join_tournament(user2, code), 403, {'detail': 'Tournament already started.'})
         self.assertThread(user1, user2, *users)
 
-    def test_004_guest_create_tournament(self):
+    def test_004_is_full(self):
+        user1 = self.user([tj] * 3 + [ts, gs])
+        user2 = self.user()
+        users = [self.user([tj] * (2 - i) + [ts, gs]) for i in range(3)]
+
+        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
+
+        for user_tmp in users:
+            self.assertResponse(join_tournament(user_tmp, code), 201)
+        time.sleep(5)
+        self.assertResponse(join_tournament(user2, code), 403, {'detail': 'Tournament is full.'})
+        self.assertThread(user1, user2, *users)
+
+    def test_005_guest_create_tournament(self):
         user1 = self.user(guest=True)
 
         self.assertResponse(create_tournament(user1), 403, {'detail': 'Guest users cannot perform this action.'})
