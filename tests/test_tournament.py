@@ -656,6 +656,22 @@ class Test09_StartTournament(UnitTest):
 
         self.assertThread(user1, user2, user3, user4)
 
+    def test_005_invite_after_start(self):
+        user1 = self.user([tj, tj, tj, ts, gs])
+        user2 = self.user([tj, tj, ts, gs])
+        user3 = self.user([tj, ts, gs])
+        user4 = self.user([ts, gs])
+
+        code = self.assertResponse(create_tournament(user1), 201, get_field='code')
+        self.assertResponse(join_tournament(user2, code), 201)
+        self.assertResponse(join_tournament(user3, code), 201)
+        self.assertResponse(join_tournament(user4, code), 201)
+
+        time.sleep(5)
+        self.assertResponse(invite_user(user1, user4, code), 403)
+
+        self.assertThread(user1, user2, user3, user4)
+
 
 class Test10_FinishTournament(UnitTest):
 
