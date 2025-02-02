@@ -64,10 +64,11 @@ class Test02_ErrorTournament(UnitTest):
         self.assertThread(user1, user2)
 
     def test_003_already_started_not_full(self):
-        user1 = self.user([tj] * 6 + [ts, gs])
+        user1 = self.user([tj] * 6 + [tsa, ts])
         user2 = self.user()
-        users = [self.user([tj] * (2 - i) + [ts, gs]) for i in range(6)]
+        users = [self.user([tj] * (5 - i) + [tsa, ts, gs]) for i in range(6)]
 
+        self.assertResponse(set_trophies(user1, 1), 201)
         code = self.assertResponse(create_tournament(user1, size=8), 201, get_field='code')
 
         for user_tmp in users:
