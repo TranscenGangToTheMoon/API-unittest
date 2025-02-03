@@ -944,8 +944,8 @@ class Test10_FinishTournament(UnitTest):
         self.assertThread(user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12, user13, user14, user15, user16)
 
     def test_003_finish_7_seeding(self):
-        user1 = self.user([tj, tj, tj, tj, tj, tj, tsa, ts, tmf, tmf, tmf, tmf, gs, tmf, tmf, gs, tmf, tf])
-        user2 = self.user([tj, tj, tj, tj, tj, tsa, ts, tmf, gs, tmf, tmf, tmf, gs, tmf, tmf, tmf, tf])
+        user1 = self.user([tj, tj, tj, tj, tj, tj, tsa, ts, tmf, tmf, tmf, gs, tmf, tmf, gs, tmf, tf])
+        user2 = self.user([tj, tj, tj, tj, tj, tsa, ts, tmf, gs, tmf, tmf, gs, tmf, tmf, tmf, tf])
         user3 = self.user([tj, tj, tj, tj, tsa, ts, tmf, gs, tmf, tmf, tmf, gs, tmf, tmf, gs, tmf, tf, ppu])
         user4 = self.user([tj, tj, tj, tsa, ts, tmf, gs, tmf, tmf, tmf, tmf, tmf, tmf, tf])
         user5 = self.user([tj, tj, tsa, ts, tmf, gs, tmf, tmf, tmf, gs, tmf, tmf, tmf, tf])
@@ -1076,7 +1076,7 @@ class Test11_Message(UnitTest):
         for _ in range(MAX_SCORE):
             self.assertResponse(score(user2['id']), 200)
 
-        self.assertResponse(post_message(user1, code, data={'content': 'sadf'}), 201) # todo fix empty message
+        self.assertResponse(post_message(user1, code, data={'content': 'sadf'}), 201)
         self.assertResponse(join_tournament(user4, code, method='DELETE'), 204)
         self.assertResponse(post_message(user3, code, data={'content': 'ewfewf'}), 201)
         self.assertResponse(post_message(user4, code, data={'content': 'asfd8'}), 403)
